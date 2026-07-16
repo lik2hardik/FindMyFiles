@@ -1,12 +1,14 @@
-from abc import  abstractmethod
+from abc import abstractmethod
+
+
 class Chunker:
-    def __init__(self,chunk_size = 512, overlap= 64):
+    def __init__(self, chunk_size=512, overlap=64):
         self.chunk_size = chunk_size
         self.overlap = overlap
 
     @abstractmethod
-    def split_text(self,text:str) -> list[str]:
-        '''
+    def split_text(self, text: str) -> list[str]:
+        """
         splits the input text into chunks with overlap.
-        '''
+        """
         pass
