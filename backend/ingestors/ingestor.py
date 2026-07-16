@@ -1,19 +1,5 @@
-from abc import abstractmethod,ABC
+from abc import abstractmethod
 import io
-
-class Ingestor:
-    def __init(self, type=None, accepted_format=None, name="default"):
-        self.name = name
-        self.type = type
-        self.format = accepted_format
-
-    @abstractmethod
-    async def extract_text(self, file) -> dict:
-        """
-        Given the media object, extract the relevant text.
-        """
-        pass
-
 
 class IngestableFile():
     def __init__(self, file_obj: io.IOBase):
@@ -30,3 +16,16 @@ class IngestableFile():
            "extension" : self.extension,
            "file": self.file_obj
         }
+    
+class Ingestor:
+    def __init__(self, type=None, accepted_format=None, name="default"):
+        self.name = name
+        self.type = type
+        self.accepted_format = accepted_format
+
+    @abstractmethod
+    async def extract_text(self, file:IngestableFile) -> str:
+        """
+        Given the media object, extract the relevant text.
+        """
+        pass
