@@ -1,4 +1,4 @@
-from ingestor import  Ingestor,IngestableFile
+from .ingestor import  Ingestor,IngestableFile
 
 class TextIngestor(Ingestor):
     def __init__(self, type="text", accepted_format=["txt"], name="default text"):
