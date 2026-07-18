@@ -1,8 +1,8 @@
 from .ingestor import  Ingestor,IngestableFile
 
 class TextIngestor(Ingestor):
-    def __init__(self, type="text", accepted_format=["txt"], name="default text"):
-        return super().__init__(type, accepted_format, name)
+    def __init__(self, type="text", accepted_format:list[str]=None, name="default text"):
+        super().__init__(type, accepted_format, name)
     
     async def extract_text(self, file:IngestableFile):
         

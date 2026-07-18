@@ -25,3 +25,7 @@ asyncio_mode = "auto"
 
 [tool.uv]
 config-settings = { "compile-bytecode" = "false" }
+
+[tool.ruff.lint]
+# Add "B" alongside your current active rules
+select = ["F", "B"]

@@ -1,5 +1,5 @@
 import pytest
-from backend.chunker.test_chunker import  RecursiveChunker
+from backend.chunker.recursive_chunker import  RecursiveChunker
 
 @pytest.mark.asyncio
 async def test_text_ingestor_extracts_valid_chunks():

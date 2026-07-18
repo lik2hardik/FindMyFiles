@@ -2,8 +2,8 @@ from abc import abstractmethod,ABC
 
 
 class FileStore(ABC):
-    def __init__(self):
-        pass
+    def __init__(self,path:str=None):
+        self.path = path
 
     @abstractmethod
     def get(self, path):
