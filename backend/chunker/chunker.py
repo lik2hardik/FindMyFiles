@@ -7,7 +7,7 @@ class Chunker:
         self.overlap = overlap
 
     @abstractmethod
-    def split_text(self, text: str) -> list[str]:
+    async def split_text(self, text: str) -> list[str]:
         """
         splits the input text into chunks with overlap.
         """

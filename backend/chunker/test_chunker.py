@@ -10,6 +10,6 @@ class TestChunker(Chunker):
             separators=["\n\n", "\n", " ", ""]
         )
     
-    def split_text(self, text:str):
+    async def split_text(self, text:str):
         chunks = self.splitter.split_text(text)
         return chunks
