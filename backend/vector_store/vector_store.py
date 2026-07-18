@@ -1,7 +1,7 @@
-from abc import abstractmethod
+from abc import abstractmethod,ABC
 
 
-class VectorStore:
+class VectorStore(ABC):
     def __init__(self):
         pass
 

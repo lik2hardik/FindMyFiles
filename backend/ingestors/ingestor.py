@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import abstractmethod,ABC
 import io
 
 class IngestableFile():
@@ -17,7 +17,7 @@ class IngestableFile():
            "file": self.file_obj
         }
     
-class Ingestor:
+class Ingestor(ABC):
     def __init__(self, type=None, accepted_format=None, name="default"):
         self.name = name
         self.type = type

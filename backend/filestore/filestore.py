@@ -1,7 +1,7 @@
-from abc import abstractmethod
+from abc import abstractmethod,ABC
 
 
-class FileStore:
+class FileStore(ABC):
     def __init__(self):
         pass
 

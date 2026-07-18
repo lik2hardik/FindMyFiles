@@ -1,7 +1,7 @@
-from abc import abstractmethod
+from abc import abstractmethod,ABC
 
 
-class Chunker:
+class Chunker(ABC):
     def __init__(self, chunk_size=512, overlap=64):
         self.chunk_size = chunk_size
         self.overlap = overlap
