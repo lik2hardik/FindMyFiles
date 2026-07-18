@@ -1,8 +1,8 @@
-from abc import abstractmethod,ABC
+from abc import abstractmethod, ABC
 
 
 class FileStore(ABC):
-    def __init__(self,path:str=None):
+    def __init__(self, path: str = None):
         self.path = path
 
     @abstractmethod

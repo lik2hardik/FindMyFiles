@@ -17,6 +17,7 @@ dev = [
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "ruff>=0.15.21",
+    "taskipy>=1.14.1",
 ]
 
 [tool.pytest.ini_options]
@@ -29,3 +30,10 @@ config-settings = { "compile-bytecode" = "false" }
 [tool.ruff.lint]
 # Add "B" alongside your current active rules
 select = ["F", "B"]
+
+[tool.taskipy.tasks]
+# Define your "dev" script shortcut here
+lint = "ruff check ."
+format = "ruff format ."
+test = "pytest tests/"
+clean = "python -c \"import shutil; [shutil.rmtree(p, ignore_errors=True) for p in ['.pytest_cache', '__pycache__', '.ruff_cache'] ]\""
