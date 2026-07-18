@@ -1,26 +1,5 @@
 from abc import abstractmethod, ABC
-import io
-
-
-class IngestableFile:
-    def __init__(self, file_obj: io.IOBase):
-        """
-        Accepts any file-like object passed from the application.
-        """
-        self.file_obj = file_obj
-        self.file_name = getattr(file_obj, "name", "unknown_source")
-        self.extension = (
-            self.file_name.split(".")[-1].lower()
-            if "." in self.file_name
-            else "unknown"
-        )
-
-    def get_file(self):
-        return {
-            "file_name": self.file_name,
-            "extension": self.extension,
-            "file": self.file_obj,
-        }
+from backend.filestore.filestore import IngestableFile
 
 
 class Ingestor(ABC):
