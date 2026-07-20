@@ -18,4 +18,5 @@ class TextIngestor(Ingestor):
         data = file.file_obj.read()
         if isinstance(data, bytes):
             return data.decode("utf-8", errors="ignore")
-        return data
+        return data, self.extract_metadata(file)
+
