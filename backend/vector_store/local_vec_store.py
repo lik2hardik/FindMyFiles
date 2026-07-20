@@ -1,9 +1,9 @@
-from vector_store.vector_store import VectorStore
+from backend.vector_store.vector_store import VectorStore
 from chromadb import PersistentClient
-from ingestors.ingestor import Metadata
+from backend.ingestors.ingestor import Metadata
 
 
-class Chroma_DB_Vector_Store(VectorStore):
+class ChromaDBVectorStore(VectorStore):
     def __init__(self, path="backend/data/vecstore/"):
         super().__init__(path)
 
@@ -21,7 +21,4 @@ class Chroma_DB_Vector_Store(VectorStore):
         )
 
     async def get(self, query, k=10, constraints=None):
-        return self.collection.query(
-            query_texts=[query],
-            n_results=k
-        )
+        return self.collection.query(query_texts=[query], n_results=k)
