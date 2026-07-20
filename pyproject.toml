@@ -37,4 +37,4 @@ select = ["F", "B"]
 lint = "ruff check ."
 format = "ruff format ."
 test = "pytest tests/"
-clean = "python -c \"import shutil; [shutil.rmtree(p, ignore_errors=True) for p in ['.pytest_cache', '__pycache__', '.ruff_cache'] ]\""
+clean = "python -c \"import shutil; [shutil.rmtree(p, ignore_errors=True) for p in ['.pytest_cache', '__pycache__', '.ruff_cache','data'] ]\""

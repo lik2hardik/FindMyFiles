@@ -3,7 +3,7 @@ import io
 
 
 class IngestableFile:
-    def __init__(self, file_obj: io.IOBase, name:str=None):
+    def __init__(self, file_obj: io.IOBase, name: str = None):
         """
         Accepts any file-like object passed from the application.
         """
