@@ -14,12 +14,14 @@ class Chroma_DB_Vector_Store(VectorStore):
 
     async def add(self, chunks, metadatas: list[Metadata]):
 
+        metadata_dicts = [m.model_dump() for m in metadatas]
+
         self.collection.add(
-            ids=await self.get_md5(chunks), documents=chunks, metadatas=metadatas
+            ids=await self.get_md5(chunks), documents=chunks, metadatas=metadata_dicts
         )
 
     async def get(self, query, k=10, constraints=None):
-        self.collection.query(
+        return self.collection.query(
             query_texts=[query],
             n_results=k
         )
