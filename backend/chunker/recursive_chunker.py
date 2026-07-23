@@ -11,6 +11,6 @@ class RecursiveChunker(Chunker):
             separators=["\n\n", "\n", " ", ""],
         )
 
-    async def split_text(self, text: str):
+    def split_text(self, text: str):
         chunks = self.splitter.split_text(text)
         return chunks

@@ -21,7 +21,7 @@ sqlite_url = f"sqlite:///{sqlite_file_name}"
 engine = create_engine(sqlite_url, echo=True)
 
 
-async def md5_hasher(f):
+def md5_hasher(f):
     f.seek(0)
     hasher = hashlib.md5()
     while chunk := f.read(4096):
@@ -35,7 +35,7 @@ class LocalSQLiteFileStore(FileStore):
         super().__init__(path)
         SQLModel.metadata.create_all(engine)
 
-    async def get(self, id):
+    def get(self, id):
         with Session(engine) as session:
             statement = select(FileDB).where(FileDB.id == id)
             file_row = session.exec(statement).one_or_none()
@@ -54,9 +54,9 @@ class LocalSQLiteFileStore(FileStore):
                     f"Database ledger record found, but raw file was deleted from disk space: {file_path}"
                 )
 
-    async def store(self, file: IngestableFile):
+    def store(self, file: IngestableFile):
 
-        md5_name = await md5_hasher(file.file_obj)
+        md5_name = md5_hasher(file.file_obj)
         file_type = file.extension if file.extension else "txt"
 
         # store metadata in database

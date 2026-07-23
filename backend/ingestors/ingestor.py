@@ -22,7 +22,7 @@ class Ingestor(ABC):
         self.accepted_format = accepted_format
 
     @abstractmethod
-    async def extract_text(self, file: IngestableFile) -> tuple[str, Metadata]:
+    def extract_text(self, file: IngestableFile) -> tuple[str, Metadata]:
         """
         Given the media object, extract the relevant text.
         """

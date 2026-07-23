@@ -7,7 +7,7 @@ class TextIngestor(Ingestor):
     ):
         super().__init__(type, accepted_format, name)
 
-    async def extract_text(self, file: IngestableFile):
+    def extract_text(self, file: IngestableFile):
 
         if file.extension not in self.accepted_format:
             raise TypeError(
