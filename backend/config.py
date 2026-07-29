@@ -8,7 +8,7 @@ from backend.chunker.recursive_chunker import RecursiveChunker
 
 TEXT_INGESTORS = TextIngestor(accepted_format=["txt","md"])
 CHUNKER = RecursiveChunker(chunk_size=512,overlap=64)
-VECROR_STORE = ChromaDBVectorStore()
+VECTOR_STORE = ChromaDBVectorStore()
 FILE_STORE = LocalSQLiteFileStore()
 
 ##################################################################
