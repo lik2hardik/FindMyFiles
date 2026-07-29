@@ -15,11 +15,14 @@ class Metadata(BaseModel):
 
 class Ingestor(ABC):
     "Class to Ingest file into chunks and metadata."
+    accepted_formats = [] # to store all accepted formats
 
     def __init__(self, type=None, accepted_format=None, name="default"):
         self.name = name
         self.type = type
         self.accepted_format = accepted_format
+
+        Ingestor.accepted_formats.extend(self.accepted_format)
 
     @abstractmethod
     def extract_text(self, file: IngestableFile) -> tuple[str, Metadata]:
