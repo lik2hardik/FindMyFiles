@@ -1,6 +1,8 @@
 from fastapi import FastAPI, File, UploadFile
 from pydantic import BaseModel
 from typing import Annotated
+from backend.filestore.filestore import IngestableFile
+from backend.ingestors.ingestor import Ingestor
 
 # CONFIG
 ##################################################################
@@ -32,9 +34,11 @@ def statistics():
 
 @app.post("/upload/")
 async def upload_file(file: Annotated[UploadFile, File()]):
-    contents = await file.read()
-    return {
-        "filename": file.filename,
-        "content_type": file.content_type,
-        "size": len(contents)
-    }
+    ingestable_file = IngestableFile(file,file.filename)
+
+    if ingestable_file.extension in Ingestor.accepted_formats:
+        return {
+            "filename": file.filename,
+            "content_type": file.content_type,
+        }
+    return {"acceptable_formats": Ingestor.accepted_formats}
