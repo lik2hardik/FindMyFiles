@@ -34,4 +34,4 @@ class FileStore(ABC):
 
     @abstractmethod
     def store(self, file: IngestableFile) -> str:
-        "stores file on the system and returns it's path"
+        "stores file on the system and returns it's unique id"

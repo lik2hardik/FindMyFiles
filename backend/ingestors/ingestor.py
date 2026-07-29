@@ -24,7 +24,7 @@ class Ingestor(ABC):
     @abstractmethod
     def extract_text(self, file: IngestableFile) -> tuple[str, Metadata]:
         """
-        Given the media object, extract the relevant text.
+        Given the media object, extract the relevant text and metadata.
         """
         pass
 
