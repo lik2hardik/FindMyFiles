@@ -1,8 +1,7 @@
 import time
-from celery_app import celery_app
-from backend.filestore.filestore import IngestableFile
+from backend.celery_app import celery_app
 from backend.ingestors.ingestor import Ingestor
-from config import CHUNKER,FILE_STORE,VECTOR_STORE
+from backend.config import CHUNKER,FILE_STORE,VECTOR_STORE
 
 @celery_app.task(name="tasks.process_file_task")
 def process_file_task(filename: str) -> str:

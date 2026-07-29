@@ -3,8 +3,8 @@ from pydantic import BaseModel
 from typing import Annotated
 from backend.filestore.filestore import IngestableFile
 from backend.ingestors.ingestor import Ingestor
-from tasks import process_ingest_file
-from config import FILE_STORE
+from backend.tasks import process_ingest_file
+from backend.config import FILE_STORE
 
 app = FastAPI()
 
