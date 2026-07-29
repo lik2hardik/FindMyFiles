@@ -3,7 +3,8 @@ from pydantic import BaseModel
 from typing import Annotated
 from backend.filestore.filestore import IngestableFile
 from backend.ingestors.ingestor import Ingestor
-from tasks import process_file_task
+from tasks import process_ingest_file
+from config import FILE_STORE
 
 app = FastAPI()
 
@@ -22,8 +23,10 @@ def statistics():
 async def upload_file(file: Annotated[UploadFile, File()]):
 
     ingestable_file = IngestableFile(file,file.filename)
+
     if ingestable_file.extension in Ingestor.accepted_formats:
-        task = process_file_task.delay("abc")
+        file_id = FILE_STORE.store(ingestable_file)
+        task = process_ingest_file.delay(file_id)
         return {
             "message": "Task has been sent to the background worker pool",
             "task_id": task.id
