@@ -1,5 +1,6 @@
 from abc import abstractmethod, ABC
 import io
+from pathlib import Path
 
 
 class IngestableFile:
@@ -9,11 +10,7 @@ class IngestableFile:
         """
         self.file_obj = file_obj
         self.file_name = name if name else getattr(file_obj, "name", "unknown_source")
-        self.extension = (
-            self.file_name.split(".")[-1].lower()
-            if "." in self.file_name
-            else "unknown"
-        )
+        self.extension = Path(self.file_name).suffix[1:].lower() or "unknown"
 
     def get_file(self):
         return {
