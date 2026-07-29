@@ -1,8 +1,40 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, File, UploadFile
+from pydantic import BaseModel
+from typing import Annotated
+
+# CONFIG
+##################################################################
+
+from backend.filestore.local_filestore import LocalSQLiteFileStore
+from backend.ingestors.text_ingestor import TextIngestor
+from backend.vector_store.local_vec_store import ChromaDBVectorStore
+from backend.chunker.recursive_chunker import RecursiveChunker
+
+TEXT_INGESTORS = TextIngestor(accepted_format=["txt","md"])
+CHUNKER = RecursiveChunker(chunk_size=512,overlap=64)
+VECROR_STORE = ChromaDBVectorStore()
+FILE_STORE = LocalSQLiteFileStore()
+
+##################################################################
 
 app = FastAPI()
 
+class Query(BaseModel):
+    q : str
+    type: list[str] | None = None
+
 
 @app.get("/")
-async def root():
-    return {"message": "Hello World"}
+def statistics():
+    "route to return the statistics of application, i.e. Ingestion status , health etc"
+    return {"Hello": "World"}
+
+
+@app.post("/upload/")
+async def upload_file(file: Annotated[UploadFile, File()]):
+    contents = await file.read()
+    return {
+        "filename": file.filename,
+        "content_type": file.content_type,
+        "size": len(contents)
+    }
