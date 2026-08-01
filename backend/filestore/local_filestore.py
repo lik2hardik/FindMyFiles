@@ -15,18 +15,24 @@ class FileDB(SQLModel, table=True):
         sa_column_kwargs={"server_default": text("(CURRENT_TIMESTAMP)")}
     )
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-sqlite_file_name = "backend/data/file_metadata.db"  # TODO: make dynamic directory path
-sqlite_url = f"sqlite:///{sqlite_file_name}"
-engine = create_engine(sqlite_url, echo=True)
+# FIX: Removed 'backend/' from the join path since BASE_DIR already includes it
+DB_DIR = os.path.join(BASE_DIR, 'data')
+DATABASE_URL = f"sqlite:///{os.path.join(DB_DIR, 'file_metadata.db')}"
+
+# CRITICAL FOR CELERY: Ensure the target data folder actually exists before engine setup
+os.makedirs(DB_DIR, exist_ok=True)
+
+engine = create_engine(DATABASE_URL, echo=True)
 
 
-def md5_hasher(f):
-    f.seek(0)
+def md5_hasher(file_obj):
+    file_obj.seek(0)
     hasher = hashlib.md5()
-    while chunk := f.read(4096):
+    while chunk := file_obj.read(8192):
         hasher.update(chunk)
-    f.seek(0)
+    file_obj.seek(0)
     return hasher.hexdigest()
 
 

@@ -22,7 +22,7 @@ def statistics():
 @app.post("/upload/")
 async def upload_file(file: Annotated[UploadFile, File()]):
 
-    ingestable_file = IngestableFile(file,file.filename)
+    ingestable_file = IngestableFile(file.file,file.filename)
 
     if ingestable_file.extension in Ingestor.accepted_formats:
         file_id = FILE_STORE.store(ingestable_file)
