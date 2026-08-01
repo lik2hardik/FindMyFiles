@@ -2,7 +2,7 @@ import os
 from celery import Celery
 
 # Define your Redis URL (adjust host/port if using Docker)
-REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 celery_app = Celery(
     "worker",
@@ -11,7 +11,7 @@ celery_app = Celery(
 )
 
 # Automatically look for tasks inside a tasks.py file
-celery_app.autodiscover_tasks(["tasks"])
+celery_app.autodiscover_tasks(["backend.tasks"])
 
 # Optional configuration tweaks
 celery_app.conf.update(
