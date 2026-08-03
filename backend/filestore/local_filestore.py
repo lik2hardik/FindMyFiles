@@ -15,18 +15,6 @@ class FileDB(SQLModel, table=True):
         sa_column_kwargs={"server_default": text("(CURRENT_TIMESTAMP)")}
     )
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# FIX: Removed 'backend/' from the join path since BASE_DIR already includes it
-DB_DIR = os.path.join(BASE_DIR, 'data')
-DATABASE_URL = f"sqlite:///{os.path.join(DB_DIR, 'file_metadata.db')}"
-
-# CRITICAL FOR CELERY: Ensure the target data folder actually exists before engine setup
-os.makedirs(DB_DIR, exist_ok=True)
-
-engine = create_engine(DATABASE_URL, echo=True)
-
-
 def md5_hasher(file_obj):
     file_obj.seek(0)
     hasher = hashlib.md5()
@@ -39,10 +27,16 @@ def md5_hasher(file_obj):
 class LocalSQLiteFileStore(FileStore):
     def __init__(self, path="backend/data"):
         super().__init__(path)
-        SQLModel.metadata.create_all(engine)
+
+        DATABASE_URL = f"sqlite:///{os.path.join(self.path, 'file_metadata.db')}"
+        os.makedirs(self.path, exist_ok=True)
+
+        self.engine = create_engine(DATABASE_URL, echo=True)
+
+        SQLModel.metadata.create_all(self.engine)
 
     def get(self, id):
-        with Session(engine) as session:
+        with Session(self.engine) as session:
             statement = select(FileDB).where(FileDB.id == id)
             file_row = session.exec(statement).one_or_none()
 
@@ -61,6 +55,7 @@ class LocalSQLiteFileStore(FileStore):
                 )
 
     def store(self, file: IngestableFile):
+        file.file_obj.seek(0)
 
         md5_name = md5_hasher(file.file_obj)
         file_type = file.extension if file.extension else "txt"
@@ -72,7 +67,9 @@ class LocalSQLiteFileStore(FileStore):
             type=file_type,
         )
 
-        with Session(engine) as session:
+        file.file_obj.seek(0)
+
+        with Session(self.engine) as session:
             try:
                 session.add(file_row)
 
