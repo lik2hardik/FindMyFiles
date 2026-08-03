@@ -21,9 +21,12 @@ def process_ingest_file(file_id) -> str:
 
     ingestor : Ingestor = Ingestor.ingestor_map.get(file.extension,None)
     text,metadata = ingestor.extract_text(file)
+    print(f"Ingestion complete for {file.file_name}...")
     text_chunks = CHUNKER.split_text(text)
-    file_id = FILE_STORE.store(file)
+    print(f"Chunking complete for {file.file_name}...")
     VECTOR_STORE.add(text_chunks , [metadata]*len(text_chunks))
+    print(f"Vector embeddings complete for {file.file_name}...")
+    print(f" complete for {file.file_name}...")
 
 
     print(f"Finished processing {file.file_name}!")

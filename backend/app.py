@@ -4,7 +4,7 @@ from typing import Annotated
 from backend.filestore.filestore import IngestableFile
 from backend.ingestors.ingestor import Ingestor
 from backend.tasks import process_ingest_file
-from backend.config import FILE_STORE
+from backend.config import FILE_STORE,VECTOR_STORE
 
 app = FastAPI()
 
@@ -21,7 +21,6 @@ def statistics():
 
 @app.post("/upload/")
 async def upload_file(file: Annotated[UploadFile, File()]):
-
     ingestable_file = IngestableFile(file.file,file.filename)
 
     if ingestable_file.extension in Ingestor.accepted_formats:
@@ -32,3 +31,11 @@ async def upload_file(file: Annotated[UploadFile, File()]):
             "task_id": task.id
         }
     return {"acceptable_formats": Ingestor.accepted_formats}
+
+
+@app.get("/get/")
+def get_file(q:str = None):
+    if q:
+        result = VECTOR_STORE.get(q)    
+        return {"result": result["documents"]}
+    return None
