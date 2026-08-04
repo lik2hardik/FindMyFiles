@@ -1,4 +1,5 @@
 from fastapi import FastAPI, File, UploadFile
+import asyncio 
 from pydantic import BaseModel
 from typing import Annotated
 from backend.filestore.filestore import IngestableFile
@@ -25,7 +26,7 @@ async def upload_file(file: Annotated[UploadFile, File()]):
     ingestable_file = IngestableFile(file.file, file.filename)
 
     if ingestable_file.extension in Ingestor.accepted_formats:
-        file_id = FILE_STORE.store(ingestable_file)
+        file_id = await asyncio.to_thread(FILE_STORE.store, ingestable_file)
         task = process_ingest_file.delay(file_id)
         return {
             "message": "Task has been sent to the background worker pool",
