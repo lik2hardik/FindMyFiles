@@ -10,6 +10,8 @@ dependencies = [
     "chromadb>=1.5.9",
     "fastapi[standard]>=0.139.0",
     "langchain-text-splitters>=1.1.2",
+    "openai>=2.52.1",
+    "rapidocr-onnxruntime>=1.4.4",
     "redis>=8.0.1",
     "sqlmodel>=0.0.39",
 ]
