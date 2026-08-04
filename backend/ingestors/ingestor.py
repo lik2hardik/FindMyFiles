@@ -15,8 +15,9 @@ class Metadata(BaseModel):
 
 class Ingestor(ABC):
     "Class to Ingest file into chunks and metadata."
-    accepted_formats = [] # to store all accepted formats
-    ingestor_map = {} # stores which format corrosponds to which ingestor
+
+    accepted_formats = []  # to store all accepted formats
+    ingestor_map = {}  # stores which format corrosponds to which ingestor
 
     def __init__(self, type=None, accepted_format=None, name="default"):
         self.name = name

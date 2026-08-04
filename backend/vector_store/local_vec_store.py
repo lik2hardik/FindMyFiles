@@ -1,5 +1,4 @@
 from backend.vector_store.vector_store import VectorStore
-from chromadb import PersistentClient
 from backend.ingestors.ingestor import Metadata
 import chromadb
 

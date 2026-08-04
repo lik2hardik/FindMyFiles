@@ -15,6 +15,7 @@ class FileDB(SQLModel, table=True):
         sa_column_kwargs={"server_default": text("(CURRENT_TIMESTAMP)")}
     )
 
+
 def md5_hasher(file_obj):
     file_obj.seek(0)
     hasher = hashlib.md5()

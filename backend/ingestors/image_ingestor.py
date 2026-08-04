@@ -28,7 +28,7 @@ class ImageOCRIngestor(Ingestor):
             text = " ".join([item[1] for item in result])
         else:
             text = ""
-            
+
         return text, self.extract_metadata(file)
 
     def api_caption(self, file: IngestableFile):
@@ -82,9 +82,8 @@ class ImageOCRIngestor(Ingestor):
             result = response.choices[0].message.content
             return result, self.extract_metadata(file)
 
-        except RateLimitError as e:
+        except RateLimitError:
             # Handles 429 errors gracefully if you scan multiple images too fast
             print("rate limit reached. Waiting 5 seconds before retry...")
             time.sleep(5)
             return self.api_caption(file)
-
