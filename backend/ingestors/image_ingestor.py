@@ -1,4 +1,4 @@
-from backend.ingestors.ingestor import IngestableFile, Ingestor
+from backend.ingestors.ingestor import IngestableFile, Ingestor, IngestFailed
 from rapidocr_onnxruntime import RapidOCR
 import base64
 import time
@@ -10,7 +10,7 @@ def encode_image(image_file):
 
 
 class ImageOCRIngestor(Ingestor):
-    def __init__(self, type="img", accepted_format=None, name="OCR", groq_key=None):
+    def __init__(self, type="img", accepted_format=None, name="OCR", groq_key=None,use_api= True):
         super().__init__(type, accepted_format, name)
         self.engine = RapidOCR()
         self.client = None
@@ -19,17 +19,30 @@ class ImageOCRIngestor(Ingestor):
                 api_key=groq_key,
                 base_url="https://api.groq.com/openai/v1",
             )
+        self.use_api = use_api
 
-    def extract_text(self, file):
+    def extract_text(self, file):   
+
+        text = self.ocr_extract(self,file)
+        if text == "":
+            if self.use_api:
+                text = self.api_caption(self,file)
+                return text
+            raise IngestFailed(f"Image {file.file_name} didn't produce text via OCR, please enable API.")
+
+        return text
+
+
+    def ocr_extract(self, file):
         file.file_obj.seek(0)
         file_bytes = file.file_obj.read()
-        result, elapse = self.engine(file_bytes)
+        result, _ = self.engine(file_bytes)
         if result:
             text = " ".join([item[1] for item in result])
         else:
             text = ""
 
-        return text, self.extract_metadata(file)
+        return text
 
     def api_caption(self, file: IngestableFile):
         """Calls a groq model to generate image captions."""
@@ -79,8 +92,8 @@ class ImageOCRIngestor(Ingestor):
                     "reasoning_format": "hidden",
                 },
             )
-            result = response.choices[0].message.content
-            return result, self.extract_metadata(file)
+            text = response.choices[0].message.content
+            return text
 
         except RateLimitError:
             # Handles 429 errors gracefully if you scan multiple images too fast
