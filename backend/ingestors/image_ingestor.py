@@ -23,14 +23,12 @@ class ImageOCRIngestor(Ingestor):
 
     def extract_text(self, file):   
 
-        text = self.ocr_extract(self,file)
+        text = self.ocr_extract(file)
+        if self.use_api:
+            text += f", Image Description: { self.api_caption(file) }"
         if text == "":
-            if self.use_api:
-                text = self.api_caption(self,file)
-                return text
             raise IngestFailed(f"Image {file.file_name} didn't produce text via OCR, please enable API.")
-
-        return text
+        return text, self.extract_metadata(file)
 
 
     def ocr_extract(self, file):

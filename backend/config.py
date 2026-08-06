@@ -1,20 +1,24 @@
 # CONFIG
 ##################################################################
 
+from pathlib import Path
 from backend.filestore.local_filestore import LocalSQLiteFileStore
 from backend.ingestors.text_ingestor import TextIngestor
 from backend.ingestors.image_ingestor import ImageOCRIngestor
 from backend.vector_store.local_vec_store import ChromaDBVectorStore
 from backend.chunker.recursive_chunker import RecursiveChunker
 import dotenv
-
 import os
 
-GROQ_KEY = dotenv.dotenv_values("GROQ_KEY")
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+ENV_PATH = PROJECT_ROOT / ".env"
+
+dotenv.load_dotenv(dotenv_path=ENV_PATH, override=False)
+GROQ_KEY = os.getenv("GROQ_KEY", "").strip() or None
 
 TEXT_INGESTORS = TextIngestor(accepted_format=["txt", "md"])
-TEXT_INGESTORS = ImageOCRIngestor(accepted_format=["txt", "md"],
-                                  GROQ_KEY=GROQ_KEY,
+TEXT_INGESTORS = ImageOCRIngestor(accepted_format=["jpg", "png", "jpeg"],
+                                  groq_key=GROQ_KEY,
                                   use_api=True)
 
 CHUNKER = RecursiveChunker(chunk_size=512, overlap=64)
