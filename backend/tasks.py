@@ -37,7 +37,5 @@ def process_ingest_file(file_id) -> str:
 
     except IngestFailed as e:
         return f"Ingestion Error: {e}"
-    except:
-        return "Error"
 
 

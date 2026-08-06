@@ -39,5 +39,11 @@ async def upload_file(file: Annotated[UploadFile, File()]):
 def get_file(q: str = None):
     if q:
         result = VECTOR_STORE.get(q)
-        return {"result": result["documents"]}
+        return {"result": result}
     return None
+
+
+@app.get("/get/all")
+def get_all():
+    result = VECTOR_STORE.collection.get()
+    return {"result": result}
