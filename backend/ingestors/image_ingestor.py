@@ -3,6 +3,12 @@ from rapidocr_onnxruntime import RapidOCR
 import base64
 import time
 from openai import OpenAI, RateLimitError
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+GROQ_KEY = os.environ.get("GROQ_KEY")
 
 
 def encode_image(image_file):
@@ -10,13 +16,13 @@ def encode_image(image_file):
 
 
 class ImageOCRIngestor(Ingestor):
-    def __init__(self, type="img", accepted_format=None, name="OCR", groq_key=None,use_api= True):
+    def __init__(self, type="img", accepted_format=None, name="OCR", use_api= True):
         super().__init__(type, accepted_format, name)
         self.engine = RapidOCR()
         self.client = None
-        if groq_key:
+        if GROQ_KEY:
             self.client = OpenAI(
-                api_key=groq_key,
+                api_key=GROQ_KEY,
                 base_url="https://api.groq.com/openai/v1",
             )
         self.use_api = use_api
