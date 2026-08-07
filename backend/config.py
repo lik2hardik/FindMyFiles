@@ -5,6 +5,7 @@ from pathlib import Path
 from backend.filestore.local_filestore import LocalSQLiteFileStore
 from backend.ingestors.text_ingestor import TextIngestor
 from backend.ingestors.image_ingestor import ImageOCRIngestor
+from backend.ingestors.audio_ingestor import AudioIngestor
 from backend.vector_store.local_vec_store import ChromaDBVectorStore
 from backend.chunker.recursive_chunker import RecursiveChunker
 import dotenv
@@ -16,10 +17,9 @@ ENV_PATH = PROJECT_ROOT / ".env"
 dotenv.load_dotenv(dotenv_path=ENV_PATH, override=False)
 GROQ_KEY = os.getenv("GROQ_KEY", "").strip() or None
 
-TEXT_INGESTORS = TextIngestor(accepted_format=["txt", "md"])
-TEXT_INGESTORS = ImageOCRIngestor(accepted_format=["jpg", "png", "jpeg"],
-                                  groq_key=GROQ_KEY,
-                                  use_api=True)
+TEXT_INGESTOR = TextIngestor(accepted_format=["txt", "md"])
+IMG_INGESTOR = ImageOCRIngestor(accepted_format=["jpg", "png", "jpeg"],use_api=True)
+AUDIO_INGESTOR = AudioIngestor(accepted_format=["wav","mp3"],use_api=False)
 
 CHUNKER = RecursiveChunker(chunk_size=512, overlap=64)
 
