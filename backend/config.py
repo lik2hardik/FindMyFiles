@@ -8,6 +8,7 @@ from backend.ingestors.image_ingestor import ImageOCRIngestor
 from backend.ingestors.audio_ingestor import AudioIngestor
 from backend.vector_store.local_vec_store import ChromaDBVectorStore
 from backend.chunker.recursive_chunker import RecursiveChunker
+from backend.app_state import AppState
 import dotenv
 import os
 
@@ -31,5 +32,8 @@ FILESTORE_DIR = os.path.join(DATA_DIR, "filestore")
 VECTOR_STORE = ChromaDBVectorStore(path=VECSTORE_DIR)
 
 FILE_STORE = LocalSQLiteFileStore(path=FILESTORE_DIR)
+
+APP_STATE_DIR = os.path.join(DATA_DIR, "app_state")
+APP_STATE = AppState(APP_STATE_DIR)
 
 ##################################################################
