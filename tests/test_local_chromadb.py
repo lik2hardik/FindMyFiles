@@ -2,9 +2,21 @@ from backend.vector_store.local_vec_store import ChromaDBVectorStore
 from backend.chunker.recursive_chunker import RecursiveChunker
 from backend.ingestors.text_ingestor import TextIngestor
 from backend.filestore.filestore import IngestableFile
+import pytest
 
 
-def test_chunks_added_properly(tmp_path):
+@pytest.fixture
+def chroma_available():
+    store = ChromaDBVectorStore()
+    try:
+        _ = store.collection
+    except ValueError:
+        pytest.skip("Chroma server is not running on localhost:8001")
+    except Exception:
+        pytest.skip("Chroma server unavailable")
+
+
+def test_chunks_added_properly(tmp_path, chroma_available):
     test_file = "tests/test.txt"
 
     with open(test_file, "r") as f:
