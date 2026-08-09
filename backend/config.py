@@ -12,6 +12,12 @@ ENV_PATH = PROJECT_ROOT / ".env"
 dotenv.load_dotenv(dotenv_path=ENV_PATH, override=False)
 GROQ_KEY = os.getenv("GROQ_KEY", "").strip() or None
 
+TEXT_INGESTOR = TextIngestor(accepted_format=["txt", "md"])
+IMG_INGESTOR = ImageOCRIngestor(accepted_format=["jpg", "png", "jpeg"],use_api=True)
+AUDIO_INGESTOR = AudioIngestor(accepted_format=["wav","mp3"],use_api=False)
+
+CHUNKER = RecursiveChunker(chunk_size=512, overlap=64)
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 VECSTORE_DIR = os.path.join(DATA_DIR, "vecstore")

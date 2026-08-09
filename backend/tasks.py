@@ -1,7 +1,7 @@
 import time
 from backend.celery_app import celery_app
-from backend.ingestors.ingestor import Ingestor, IngestFailed
-from backend.config import get_chunker, get_file_store, get_vector_store, get_app_state
+from backend.ingestors.ingestor import Ingestor,IngestFailed
+from backend.config import CHUNKER, FILE_STORE, VECTOR_STORE, APP_STATE
 
 
 @celery_app.task(name="tasks.process_file_task")
@@ -14,7 +14,7 @@ def process_file_task(filename: str) -> str:
 
 
 @celery_app.task(name="tasks.ingest_file")
-def process_ingest_file(file_id, app_state_id) -> str:
+def process_ingest_file(file_id,app_state_id) -> str:
     """Ingest the stored file end to end and return the file id."""
 
     file = get_file_store().get(file_id)
@@ -44,7 +44,7 @@ def process_ingest_file(file_id, app_state_id) -> str:
         return 0
 
     except IngestFailed as e:
-        app_state.update_file(
-            app_state_id, status="Ingestion Failed", error_msg=f"Ingestion Error: {e}"
-        )
+        APP_STATE.update_file(app_state_id, status="Ingestion Failed", error_msg=f"Ingestion Error: {e}")
         return f"Ingestion Error: {e}"
+
+

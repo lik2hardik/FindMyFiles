@@ -42,8 +42,8 @@ class AppState:
             conn.exec_driver_sql("PRAGMA journal_mode=WAL")
         SQLModel.metadata.create_all(self.engine)
 
-    def insert_file(self, file_name: str, file_type: str, file_status: str):
-        if not all([file_name, file_type, file_status]):
+    def insert_file(self,file_name:str ,file_type:str ,file_status:str):
+        if not all([file_name, file_type,file_status]):
             raise ValueError("need all fields file name, status, type")
 
         with Session(self.engine) as session:
@@ -53,20 +53,18 @@ class AppState:
                 name=file_name,
             )
             session.add(row)
-            session.commit()
+            session.commit() 
             session.refresh(row)
 
-            return row.id
+            return row.id       
 
-    def update_file(self, file_id: int, status=None, error_msg=None):
+    def update_file(self, file_id: int, status=None,error_msg=None):
         with Session(self.engine) as session:
             statement = select(AppStateDB).where(AppStateDB.id == file_id)
             file_row = session.exec(statement).one_or_none()
 
             if not file_row:
-                raise FileNotFoundError(
-                    f"No file entry found in database for ID: {file_id}"
-                )
+                raise FileNotFoundError(f"No file entry found in database for ID: {file_id}")
 
             if status is not None:
                 file_row.status = status
@@ -77,13 +75,11 @@ class AppState:
     def get_status_by_id(self, file_id):
         with Session(self.engine) as session:
             statement = select(AppStateDB).where(AppStateDB.id == file_id)
-            file_row = session.exec(statement).one_or_none()
+            file_row = session.exec(statement).one_or_none() 
 
             if not file_row:
-                raise FileNotFoundError(
-                    f"No file entry found in database for ID: {file_id}"
-                )
-            return row_to_dict(file_row)
+                raise FileNotFoundError(f"No file entry found in database for ID: {file_id}")
+            return row_to_dict(file_row)               
 
     def get_status_all(self):
         with Session(self.engine) as session:
