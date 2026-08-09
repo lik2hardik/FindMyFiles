@@ -8,3 +8,5 @@ Multimodal RAG based application that helps you find and query your files with n
 `uv run task dev`
 
 `chroma run --path backend/data/vecstore --host localhost --port 8001`
+
+`gradio frontend/app.py`
