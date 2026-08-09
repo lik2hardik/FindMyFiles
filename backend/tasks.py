@@ -24,6 +24,10 @@ def process_ingest_file(file_id, app_state_id) -> str:
 
     try:
         ingestor: Ingestor = Ingestor.ingestor_map.get(file.extension, None)
+
+        if ingestor is None:
+            raise IngestFailed(f"No ingestor found for file type: {file.extension}")
+
         text, metadata = ingestor.extract_text(file)
         app_state.update_file(app_state_id, "Ingestion Complete")
         print(f"Ingestion complete for {file.file_name}...")
