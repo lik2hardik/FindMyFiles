@@ -5,8 +5,7 @@ from typing import Annotated
 from backend.filestore.filestore import IngestableFile
 from backend.ingestors.ingestor import Ingestor
 from backend.tasks import process_ingest_file
-from backend.config import FILE_STORE, VECTOR_STORE
-from backend.config import APP_STATE
+from backend.config import get_file_store, get_vector_store, get_app_state
 
 app = FastAPI()
 
@@ -27,9 +26,9 @@ async def upload_file(file: Annotated[UploadFile, File()]):
     ingestable_file = IngestableFile(file.file, file.filename)
 
     if ingestable_file.extension in Ingestor.accepted_formats:
-        file_id = await asyncio.to_thread(FILE_STORE.store, ingestable_file)
+        file_id = await asyncio.to_thread(get_file_store().store, ingestable_file)
 
-        app_state_id = APP_STATE.insert_file(
+        app_state_id = get_app_state().insert_file(
             file_name=ingestable_file.file_name,
             file_type=ingestable_file.extension,
             file_status="Storage Complete",
@@ -46,12 +45,12 @@ async def upload_file(file: Annotated[UploadFile, File()]):
 @app.get("/get/")
 def get_file(q: str = None):
     if q:
-        result = VECTOR_STORE.get(q)
+        result = get_vector_store().get(q)
         return {"result": result}
     return None
 
 
 @app.get("/get/all")
 def get_all():
-    result = VECTOR_STORE.collection.get()
+    result = get_vector_store().collection.get()
     return {"result": result}
