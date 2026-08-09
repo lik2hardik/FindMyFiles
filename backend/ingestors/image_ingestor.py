@@ -16,7 +16,7 @@ def encode_image(image_file):
 
 
 class ImageOCRIngestor(Ingestor):
-    def __init__(self, type="img", accepted_format=None, name="OCR", use_api= True):
+    def __init__(self, type="img", accepted_format=None, name="OCR", use_api=True):
         super().__init__(type, accepted_format, name)
         self.engine = RapidOCR()
         self.client = None
@@ -27,15 +27,16 @@ class ImageOCRIngestor(Ingestor):
             )
         self.use_api = use_api
 
-    def extract_text(self, file):   
+    def extract_text(self, file):
 
         text = self.ocr_extract(file)
         if self.use_api:
-            text += f", Image Description: { self.api_caption(file) }"
+            text += f", Image Description: {self.api_caption(file)}"
         if text == "":
-            raise IngestFailed(f"Image {file.file_name} didn't produce text via OCR, please enable API.")
+            raise IngestFailed(
+                f"Image {file.file_name} didn't produce text via OCR, please enable API."
+            )
         return text, self.extract_metadata(file)
-
 
     def ocr_extract(self, file):
         file.file_obj.seek(0)

@@ -15,7 +15,9 @@ class Metadata(BaseModel):
 
 class IngestFailed(Exception):
     "Ingestor Failed to extract text from the File."
+
     pass
+
 
 class Ingestor(ABC):
     "Class to Ingest file into chunks and metadata."
