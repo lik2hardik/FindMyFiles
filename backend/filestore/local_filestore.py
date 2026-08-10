@@ -11,6 +11,7 @@ class FileDB(SQLModel, table=True):
     original_name: str
     md5_name: str
     type: str | None = None
+    size: int | None = None
     date_added: datetime = Field(
         sa_column_kwargs={"server_default": text("(CURRENT_TIMESTAMP)")}
     )
@@ -35,6 +36,23 @@ class LocalSQLiteFileStore(FileStore):
         self.engine = create_engine(DATABASE_URL, echo=True)
 
         SQLModel.metadata.create_all(self.engine)
+
+    def get_metadata(self, id) -> dict:
+        with Session(self.engine) as session:
+            statement = select(FileDB).where(FileDB.id == id)
+            file_row = session.exec(statement).one_or_none()
+
+            if not file_row:
+                raise FileNotFoundError(f"No file entry found in database for ID: {id}")
+
+            return {
+                "file_id": file_row.id,
+                "file_name": file_row.original_name,
+                "md5_name": file_row.md5_name,
+                "type": file_row.type,
+                "size": file_row.size,
+                "date_added": file_row.date_added,
+            }
 
     def get(self, id):
         with Session(self.engine) as session:
@@ -84,6 +102,8 @@ class LocalSQLiteFileStore(FileStore):
 
                 with open(file_path, "wb") as f_out:
                     shutil.copyfileobj(file.file_obj, f_out)
+
+                file_row.size = os.path.getsize(file_path)
 
                 session.commit()
                 session.refresh(file_row)
