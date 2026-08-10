@@ -5,3 +5,5 @@ __pycache__/
 .env
 
 data/
+temp-13371.rdb
+dump.rdb

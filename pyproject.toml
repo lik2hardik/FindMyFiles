@@ -13,6 +13,7 @@ dependencies = [
     "gradio>=6.22.0",
     "langchain-text-splitters>=1.1.2",
     "openai>=2.52.1",
+    "pymupdf>=1.28.2",
     "rapidocr-onnxruntime>=1.4.4",
     "redis>=8.0.1",
     "sqlmodel>=0.0.39",

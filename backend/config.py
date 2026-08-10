@@ -6,6 +6,7 @@ from backend.filestore.local_filestore import LocalSQLiteFileStore
 from backend.ingestors.text_ingestor import TextIngestor
 from backend.ingestors.image_ingestor import ImageOCRIngestor
 from backend.ingestors.audio_ingestor import AudioIngestor
+from backend.ingestors.pdf_ingestor import PdfIngestor
 from backend.vector_store.local_vec_store import ChromaDBVectorStore
 from backend.chunker.recursive_chunker import RecursiveChunker
 from backend.app_state import AppState
@@ -21,6 +22,7 @@ GROQ_KEY = os.getenv("GROQ_KEY", "").strip() or None
 TEXT_INGESTOR = TextIngestor(accepted_format=["txt", "md"])
 IMG_INGESTOR = ImageOCRIngestor(accepted_format=["jpg", "png", "jpeg"], use_api=True)
 AUDIO_INGESTOR = AudioIngestor(accepted_format=["wav", "mp3"], use_api=False)
+PDF_INGESTOR = PdfIngestor(accepted_format=["pdf"])
 
 CHUNKER = RecursiveChunker(chunk_size=512, overlap=64)
 
