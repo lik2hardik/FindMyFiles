@@ -1,12 +1,13 @@
-from backend.ingestors.ingestor import IngestableFile, Ingestor, IngestFailed
-from rapidocr_onnxruntime import RapidOCR
 import base64
-import time
-from openai import OpenAI, RateLimitError
 import os
-from dotenv import load_dotenv
+import time
 from functools import cached_property
 
+from dotenv import load_dotenv
+from openai import OpenAI, RateLimitError
+
+from backend.ingestors.ingestor import IngestableFile, IngestFailed, Ingestor
+from backend.ingestors.ocr_utils import get_ocr_engine
 
 load_dotenv()
 
@@ -20,7 +21,7 @@ def encode_image(image_file):
 class ImageOCRIngestor(Ingestor):
     @cached_property
     def engine(self):
-        return RapidOCR()
+        return get_ocr_engine()
 
     def __init__(self, type="img", accepted_format=None, name="OCR", use_api=True):
         super().__init__(type, accepted_format, name)
