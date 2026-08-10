@@ -28,6 +28,10 @@ def process_ingest_file(file_id, app_state_id) -> str:
             raise IngestFailed(f"No ingestor found for file type: {file.extension}")
 
         text, metadata = ingestor.extract_text(file)
+        if not text or not text.strip():
+            raise IngestFailed(
+                f"No text could be extracted from {file.file_name} "
+            )
         APP_STATE.update_file(app_state_id, "Ingestion Complete")
         print(f"Ingestion complete for {file.file_name}...")
         text_chunks = CHUNKER.split_text(text)
@@ -47,3 +51,11 @@ def process_ingest_file(file_id, app_state_id) -> str:
             app_state_id, status="Ingestion Failed", error_msg=f"Ingestion Error: {e}"
         )
         return f"Ingestion Error: {e}"
+
+    except Exception as e:
+        APP_STATE.update_file(
+            app_state_id,
+            status="Ingestion Failed",
+            error_msg=f"Unexpected error during ingestion: {e}",
+        )
+        return f"Unexpected error: {e}"

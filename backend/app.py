@@ -126,10 +126,13 @@ def get_file_contents(file_id: int):
         },
     )
 
-
 @app.get("/files/{file_id}")
 def file_status(file_id: int):
     try:
         return APP_STATE.get_status_by_id(file_id)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
+
+@app.get("/formats")
+def get_formats():
+    return Ingestor.accepted_formats

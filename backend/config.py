@@ -2,7 +2,9 @@
 ##################################################################
 
 from pathlib import Path
+from kombu.utils.functional import accepts_argument
 from backend.filestore.local_filestore import LocalSQLiteFileStore
+from backend.ingestors.ingestor import Ingestor
 from backend.ingestors.text_ingestor import TextIngestor
 from backend.ingestors.image_ingestor import ImageOCRIngestor
 from backend.ingestors.audio_ingestor import AudioIngestor
