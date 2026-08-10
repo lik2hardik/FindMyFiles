@@ -28,6 +28,7 @@ def row_to_dict(file_row):
         "add_timestamp": file_row.add_timestamp,
         "last_update_timestamp": file_row.last_update_timestamp,
         "status": file_row.status,
+        "error_message": file_row.error_message,
     }
 
 

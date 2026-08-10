@@ -30,4 +30,11 @@ class ChromaDBVectorStore(VectorStore):
 
     def get(self, query, k=10, constraints=None):
         print(self.collection.count())
-        return self.collection.query(query_texts=[query], n_results=k)
+        kwargs = {
+            "query_texts": [query],
+            "n_results": k,
+            "include": ["documents", "metadatas", "distances"],
+        }
+        if constraints:
+            kwargs["where"] = constraints
+        return self.collection.query(**kwargs)
