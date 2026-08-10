@@ -9,7 +9,7 @@ class AppStateDB(SQLModel, table=True):
     name: str
     file_type: str | None = None
 
-    add_timestamp: datetime = Field(sa_column_kwargs={"server_default": func.now()})
+    add_timestamp: datetime | None = Field(sa_column_kwargs={"server_default": func.now()})
     last_update_timestamp: datetime = Field(
         sa_column_kwargs={"server_default": func.now(), "onupdate": func.now()}
     )
@@ -53,10 +53,10 @@ class AppState:
                 name=file_name,
             )
             session.add(row)
-            session.commit() 
+            session.commit()
             session.refresh(row)
 
-            return row.id       
+            return row.id
 
     def update_file(self, file_id: int, status=None,error_msg=None):
         with Session(self.engine) as session:
@@ -75,11 +75,11 @@ class AppState:
     def get_status_by_id(self, file_id):
         with Session(self.engine) as session:
             statement = select(AppStateDB).where(AppStateDB.id == file_id)
-            file_row = session.exec(statement).one_or_none() 
+            file_row = session.exec(statement).one_or_none()
 
             if not file_row:
                 raise FileNotFoundError(f"No file entry found in database for ID: {file_id}")
-            return row_to_dict(file_row)               
+            return row_to_dict(file_row)
 
     def get_status_all(self):
         with Session(self.engine) as session:

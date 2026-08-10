@@ -13,14 +13,14 @@ def upload_file(file):
             files={"file": (os.path.basename(file), f, "application/octet-stream")}
         )
     return response.json()
-    
+
 
 def get_file(query):
     get_file_url = f"{BACKEND_URL}/get/"
     response = requests.get(
         url=get_file_url,params={"q" : query}
     )
-    
+
     return response.json()
 
 
@@ -39,4 +39,6 @@ retrieval = gr.Interface(
 )
 
 demo = gr.TabbedInterface([ingest, retrieval], ["Upload", "Retrieve"])
-demo.launch()
+
+if __name__ == "__main__":
+    demo.launch(server_port=7860)
