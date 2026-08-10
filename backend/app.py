@@ -5,7 +5,7 @@ from typing import Annotated
 from backend.filestore.filestore import IngestableFile
 from backend.ingestors.ingestor import Ingestor
 from backend.tasks import process_ingest_file
-from backend.config import FILE_STORE, VECTOR_STORE,  APP_STATE
+from backend.config import FILE_STORE, VECTOR_STORE, APP_STATE
 
 app = FastAPI()
 
@@ -37,7 +37,7 @@ async def upload_file(file: Annotated[UploadFile, File()]):
         return {
             "message": "Task has been sent to the background worker pool",
             "task_id": task.id,
-            "file_id": app_state_id
+            "file_id": app_state_id,
         }
     return {"acceptable_formats": Ingestor.accepted_formats}
 
