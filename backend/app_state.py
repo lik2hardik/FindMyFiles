@@ -8,6 +8,7 @@ class AppStateDB(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str
     file_type: str | None = None
+    file_id: int | None = None
 
     add_timestamp: datetime | None = Field(
         sa_column_kwargs={"server_default": func.now()}
@@ -22,7 +23,8 @@ class AppStateDB(SQLModel, table=True):
 
 def row_to_dict(file_row):
     return {
-        "file_id": file_row.id,
+        "file_id": file_row.file_id,
+        "app_state_id": file_row.id,
         "file_name": file_row.name,
         "file_type": file_row.file_type,
         "add_timestamp": file_row.add_timestamp,
@@ -45,7 +47,9 @@ class AppState:
             conn.exec_driver_sql("PRAGMA journal_mode=WAL")
         SQLModel.metadata.create_all(self.engine)
 
-    def insert_file(self, file_name: str, file_type: str, file_status: str):
+    def insert_file(
+        self, file_name: str, file_type: str, file_status: str, file_id: int | None = None
+    ):
         if not all([file_name, file_type, file_status]):
             raise ValueError("need all fields file name, status, type")
 
@@ -54,6 +58,7 @@ class AppState:
                 file_type=file_type,
                 status=file_status,
                 name=file_name,
+                file_id=file_id,
             )
             session.add(row)
             session.commit()
