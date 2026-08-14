@@ -1,7 +1,12 @@
 from abc import abstractmethod, ABC
 
 
-class Chunker(ABC):
+class ChunkingError(Exception):
+    """
+    Custom exception for chunking errors.
+    """
+
+class BaseChunker(ABC):
     def __init__(self, chunk_size=512, overlap=64):
         self.chunk_size = chunk_size
         self.overlap = overlap
