@@ -1,5 +1,5 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from .chunker import BaseChunker,ChunkingError
+from .base_chunker import BaseChunker,ChunkingError
 from functools import cached_property
 
 
