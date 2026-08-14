@@ -1,5 +1,5 @@
-from backend.chunker.recursive_chunker import RecursiveChunker
-
+from backend.chunker import RecursiveChunker, ChunkingError
+import pytest
 
 def test_text_ingestor_extracts_valid_chunks():
     chunker = RecursiveChunker(chunk_size=100, overlap=10)
@@ -14,3 +14,12 @@ def test_text_ingestor_extracts_valid_chunks():
         assert isinstance(chunk, str)
         assert len(chunk.strip()) > 0
         assert len(chunk) <= 100
+
+def test_invalid_chunker_init():
+    with pytest.raises(ValueError):
+        RecursiveChunker(chunk_size=-1, overlap=10)
+
+def test_invalid_split_text():
+    chunker = RecursiveChunker()
+    with pytest.raises(ChunkingError):
+        chunker.split_text(1)
