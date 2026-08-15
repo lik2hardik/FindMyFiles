@@ -1,7 +1,7 @@
 from fastapi import FastAPI, File, HTTPException, Response, UploadFile
 import asyncio
 from typing import Annotated
-from backend.filestore.filestore import IngestableFile
+from backend.filestore.base_filestore import IngestableFile
 from backend.ingestors.ingestor import Ingestor
 from backend.tasks import process_ingest_file
 from backend.config import FILE_STORE, VECTOR_STORE, APP_STATE
@@ -126,12 +126,14 @@ def get_file_contents(file_id: int):
         },
     )
 
+
 @app.get("/files/{file_id}")
 def file_status(file_id: int):
     try:
         return APP_STATE.get_status_by_id(file_id)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
+
 
 @app.get("/formats")
 def get_formats():

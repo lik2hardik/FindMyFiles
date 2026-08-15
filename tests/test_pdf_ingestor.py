@@ -3,7 +3,7 @@ import io
 import pymupdf
 import pytest
 
-from backend.filestore.filestore import IngestableFile
+from backend.filestore.base_filestore import IngestableFile
 from backend.ingestors.ingestor import IngestFailed, Ingestor, Metadata
 from backend.ingestors.pdf_ingestor import PdfIngestor
 

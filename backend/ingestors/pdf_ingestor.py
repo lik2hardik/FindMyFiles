@@ -25,9 +25,7 @@ class PdfIngestor(Ingestor):
                     if text:
                         page_texts.append(f"[Page {page_num}]\n{text}")
         except Exception as e:
-            raise IngestFailed(
-                f"PDF {file.file_name} could not be parsed: {e}"
-            ) from e
+            raise IngestFailed(f"PDF {file.file_name} could not be parsed: {e}") from e
 
         text = "\n\n".join(page_texts).strip()
         if not text:

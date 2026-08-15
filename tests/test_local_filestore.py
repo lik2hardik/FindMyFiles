@@ -1,5 +1,5 @@
 from backend.filestore.local_filestore import LocalSQLiteFileStore
-from backend.filestore.filestore import IngestableFile
+from backend.filestore.base_filestore import IngestableFile
 
 
 def test_file_stored_properly(tmp_path):

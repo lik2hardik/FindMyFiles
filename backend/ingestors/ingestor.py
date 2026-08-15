@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABC
-from backend.filestore.filestore import IngestableFile
+from backend.filestore.base_filestore import IngestableFile
 from pydantic import BaseModel, Field
 from datetime import datetime, timezone
 

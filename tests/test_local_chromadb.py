@@ -1,7 +1,7 @@
 from backend.vector_store.local_vec_store import ChromaDBVectorStore
 from backend.chunker.recursive_chunker import RecursiveChunker
 from backend.ingestors.text_ingestor import TextIngestor
-from backend.filestore.filestore import IngestableFile
+from backend.filestore.base_filestore import IngestableFile
 
 
 def test_chunks_added_properly(tmp_path):

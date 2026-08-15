@@ -9,3 +9,4 @@ temp-13371.rdb
 dump.rdb
 .ruff_cache/
 .pytest_cache/
+.gradio/

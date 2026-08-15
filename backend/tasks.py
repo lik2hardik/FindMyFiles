@@ -17,11 +17,10 @@ def process_file_task(filename: str) -> str:
 def process_ingest_file(file_id, app_state_id) -> str:
     """Ingest the stored file end to end and return the file id."""
 
-    file = FILE_STORE.get(file_id)
-
-    print(f"Starting processing for {file.file_name}...")
-
     try:
+        file = FILE_STORE.get(file_id)
+        print(f"Starting processing for {file.file_name}...")
+
         ingestor: Ingestor = Ingestor.ingestor_map.get(file.extension, None)
 
         if ingestor is None:
@@ -29,9 +28,7 @@ def process_ingest_file(file_id, app_state_id) -> str:
 
         text, metadata = ingestor.extract_text(file)
         if not text or not text.strip():
-            raise IngestFailed(
-                f"No text could be extracted from {file.file_name} "
-            )
+            raise IngestFailed(f"No text could be extracted from {file.file_name} ")
         APP_STATE.update_file(app_state_id, "Ingestion Complete")
         print(f"Ingestion complete for {file.file_name}...")
         text_chunks = CHUNKER.split_text(text)

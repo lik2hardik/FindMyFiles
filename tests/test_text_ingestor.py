@@ -1,6 +1,6 @@
 import pytest
 from backend.ingestors.text_ingestor import TextIngestor
-from backend.filestore.filestore import IngestableFile
+from backend.filestore.base_filestore import IngestableFile
 from backend.ingestors.ingestor import Metadata
 
 

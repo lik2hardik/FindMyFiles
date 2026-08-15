@@ -1,5 +1,5 @@
 from backend.ingestors.image_ingestor import ImageOCRIngestor
-from backend.filestore.filestore import IngestableFile
+from backend.filestore.base_filestore import IngestableFile
 import os
 
 

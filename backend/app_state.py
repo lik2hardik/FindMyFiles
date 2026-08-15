@@ -48,7 +48,11 @@ class AppState:
         SQLModel.metadata.create_all(self.engine)
 
     def insert_file(
-        self, file_name: str, file_type: str, file_status: str, file_id: int | None = None
+        self,
+        file_name: str,
+        file_type: str,
+        file_status: str,
+        file_id: int | None = None,
     ):
         if not all([file_name, file_type, file_status]):
             raise ValueError("need all fields file name, status, type")
