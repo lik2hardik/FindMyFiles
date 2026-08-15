@@ -1,8 +1,14 @@
 from abc import abstractmethod, ABC
 import hashlib
 
+class VectorStoreError(Exception):
+    """
+    Custom exception for VectorStore errors.
+    """
+    pass
 
-class VectorStore(ABC):
+
+class BaseVectorStore(ABC):
     def __init__(self, path: str = None):
         self.path = path
 
@@ -17,4 +23,7 @@ class VectorStore(ABC):
     @staticmethod
     def get_md5(chunks: list[str]) -> list[str]:
         "Get the md5 for chunk to serve as unique ids for vector store."
-        return [hashlib.md5(chunk.encode("utf-8")).hexdigest() for chunk in chunks]
+        try:
+            return [hashlib.md5(chunk.encode("utf-8")).hexdigest() for chunk in chunks]
+        except Exception as e:
+            raise VectorStoreError(f"Failed to get md5 for chunks: {e}")
