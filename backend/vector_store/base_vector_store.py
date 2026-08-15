@@ -26,4 +26,4 @@ class BaseVectorStore(ABC):
         try:
             return [hashlib.md5(chunk.encode("utf-8")).hexdigest() for chunk in chunks]
         except Exception as e:
-            raise VectorStoreError(f"Failed to get md5 for chunks: {e}")
+            raise VectorStoreError(f"Failed to get md5 for chunks: {e}") from e

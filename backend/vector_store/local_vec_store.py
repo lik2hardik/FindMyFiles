@@ -10,26 +10,42 @@ class ChromaDBVectorStore(BaseVectorStore):
     @cached_property
     def client(self):
         try:
+            if self._client_factory:
+                return self._client_factory()
             return chromadb.HttpClient(host=self.host, port=self.port)
+        except ChromaDBError as e:
+            raise e
         except Exception as e:
             raise ChromaDBError(f"Failed to create client: {e}") from e
 
     @cached_property
     def collection(self):
         try:
-            return self.client.get_or_create_collection(
-                name="my-collection",
-                metadata={"description": "vector-store for data"},
-            )
+            kwargs = {
+                "name": "my-collection",
+                "metadata": {"description": "vector-store for data"},
+            }
+            if self._embedding_function:
+                kwargs["embedding_function"] = self._embedding_function
+            return self.client.get_or_create_collection(**kwargs)
         except ChromaDBError as e:
             raise e
         except Exception as e:
             raise ChromaDBError(f"Failed to get or create collection: {e}") from e
 
-    def __init__(self, path="backend/data/vecstore/", host="localhost", port=8001):
+    def __init__(
+        self,
+        path="backend/data/vecstore/",
+        host="localhost",
+        port=8001,
+        client_factory=None,
+        embedding_function=None,
+    ):
         super().__init__(path)
         self.host = host
         self.port = port
+        self._client_factory = client_factory
+        self._embedding_function = embedding_function
 
     def add(self, chunks: list[str] , metadatas: list[Metadata]):
         try:
@@ -40,7 +56,7 @@ class ChromaDBVectorStore(BaseVectorStore):
                 raise VectorStoreError(f"Chunks and metadatas must have the same length len(chunks)={len(chunks)} len(metadatas)={len(metadatas)}")
 
             if not all(isinstance(m, Metadata) for m in metadatas):
-                raise VectorStoreError(f"All metadatas must be instances of Metadata")
+                raise VectorStoreError("All metadatas must be instances of Metadata")
 
             metadata_dicts = [m.model_dump() for m in metadatas]
 
