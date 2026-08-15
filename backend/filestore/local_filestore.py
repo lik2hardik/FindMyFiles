@@ -1,9 +1,18 @@
-from .filestore import FileStore, IngestableFile
+from .base_filestore import BaseFileStore, IngestableFile, FileStoreError
 from datetime import datetime
 from sqlmodel import Field, SQLModel, create_engine, Session, text, select
 import hashlib
 import os
 import shutil
+
+
+class DataNotFoundError(FileStoreError):
+    """
+    Raised when the entry for a file is not found in the metadata
+    database, because the file has not been ingested yet, or some other reason.
+    """
+
+    pass
 
 
 class FileDB(SQLModel, table=True):
@@ -26,24 +35,34 @@ def md5_hasher(file_obj):
     return hasher.hexdigest()
 
 
-class LocalSQLiteFileStore(FileStore):
+class LocalSQLiteFileStore(BaseFileStore):
     def __init__(self, path="backend/data"):
         super().__init__(path)
 
-        DATABASE_URL = f"sqlite:///{os.path.join(self.path, 'file_metadata.db')}"
-        os.makedirs(self.path, exist_ok=True)
+        try:
+            DATABASE_URL = f"sqlite:///{os.path.join(self.path, 'file_metadata.db')}"
+            os.makedirs(self.path, exist_ok=True)
 
-        self.engine = create_engine(DATABASE_URL, echo=True)
+            self.engine = create_engine(DATABASE_URL, echo=True)
 
-        SQLModel.metadata.create_all(self.engine)
+            SQLModel.metadata.create_all(self.engine)
+        except Exception as e:
+            raise FileStoreError(
+                f"Failed to create/initialize database (file_metadata.db): {e}"
+            ) from e
 
-    def get_metadata(self, id) -> dict:
+    def get_metadata(self, id):
         with Session(self.engine) as session:
-            statement = select(FileDB).where(FileDB.id == id)
-            file_row = session.exec(statement).one_or_none()
+            try:
+                statement = select(FileDB).where(FileDB.id == id)
+                file_row = session.exec(statement).one_or_none()
+            except Exception as e:
+                raise FileStoreError(
+                    f"Failed to retrieve file from database: {e}"
+                ) from e
 
             if not file_row:
-                raise FileNotFoundError(f"No file entry found in database for ID: {id}")
+                raise DataNotFoundError(f"No file entry found in database for ID: {id}")
 
             return {
                 "file_id": file_row.id,
@@ -56,37 +75,51 @@ class LocalSQLiteFileStore(FileStore):
 
     def get(self, id):
         with Session(self.engine) as session:
-            statement = select(FileDB).where(FileDB.id == id)
-            file_row = session.exec(statement).one_or_none()
+            try:
+                statement = select(FileDB).where(FileDB.id == id)
+                file_row = session.exec(statement).one_or_none()
+            except Exception as e:
+                raise FileStoreError(
+                    f"Failed to retrieve file from database: {e}"
+                ) from e
 
             if not file_row:
-                raise FileNotFoundError(f"No file entry found in database for ID: {id}")
+                raise DataNotFoundError(f"No file entry found in database for ID: {id}")
 
             os.makedirs(self.path, exist_ok=True)
-            file_path = os.path.join(self.path, f"{file_row.md5_name}.{file_row.type}")
+            file_path = os.path.join(
+                self.path, f"{file_row.md5_name}.{file_row.type or 'unknown'}"
+            )
 
-            if os.path.exists(file_path):
+            try:
                 f = open(file_path, "rb")
                 return IngestableFile(file_obj=f, name=file_row.original_name)
-            else:
-                raise IOError(
-                    f"Database ledger record found, but raw file was deleted from disk space: {file_path}"
-                )
+            except Exception as e:
+                raise FileStoreError(
+                    f"Failed to open file from disk at {file_path}: {e}"
+                ) from e
 
     def store(self, file: IngestableFile):
-        file.file_obj.seek(0)
 
-        md5_name = md5_hasher(file.file_obj)
-        file_type = file.extension if file.extension else "txt"
+        try:
+            md5_name = md5_hasher(file.file_obj)
+            file_type = file.extension if file.extension else "txt"
+        except Exception as e:
+            raise FileStoreError(f"Failed to compute MD5 hash: {e}") from e
 
         # store metadata in database
-        file_row = FileDB(
-            original_name=file.file_name,
-            md5_name=md5_name,
-            type=file_type,
-        )
+
+        try:
+            file_row = FileDB(
+                original_name=file.file_name,
+                md5_name=md5_name,
+                type=file_type,
+            )
+        except Exception as e:
+            raise FileStoreError(f"Failed to create database record: {e}") from e
 
         file.file_obj.seek(0)
+        file_path = None
 
         with Session(self.engine) as session:
             try:
@@ -112,8 +145,13 @@ class LocalSQLiteFileStore(FileStore):
 
             except Exception as e:
                 session.rollback()
-                if os.path.exists(file_path):
-                    os.remove(file_path)
-                raise IOError(
+                if file_path and os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                    except Exception as remove_e:
+                        raise FileStoreError(
+                            f"Failed to remove file from disk: {remove_e}"
+                        ) from remove_e
+                raise FileStoreError(
                     f"Database/Disk atomic operations sync failed: {e}"
                 ) from e

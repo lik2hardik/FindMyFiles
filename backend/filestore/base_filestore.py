@@ -3,11 +3,20 @@ import io
 from pathlib import Path
 
 
+class FileStoreError(Exception):
+    "Base exception for all FileStore errors."
+
+    pass
+
+
 class IngestableFile:
-    def __init__(self, file_obj: io.IOBase, name: str = None):
+    def __init__(self, file_obj: io.IOBase, name: str | None = None):
         """
         Accepts any file-like object passed from the application.
         """
+        if not isinstance(file_obj, io.IOBase):
+            raise FileStoreError("file_obj must be an io.IOBase instance")
+
         self.file_obj = file_obj
         self.file_name = name if name else getattr(file_obj, "name", "unknown_source")
         self.extension = Path(self.file_name).suffix[1:].lower() or "unknown"
@@ -20,8 +29,8 @@ class IngestableFile:
         }
 
 
-class FileStore(ABC):
-    def __init__(self, path: str = None):
+class BaseFileStore(ABC):
+    def __init__(self, path: str | None = None):
         self.path = path
 
     @abstractmethod
@@ -30,5 +39,6 @@ class FileStore(ABC):
         pass
 
     @abstractmethod
-    def store(self, file: IngestableFile) -> str:
+    def store(self, file: IngestableFile):
         "stores file on the system and returns it's unique id"
+        pass
