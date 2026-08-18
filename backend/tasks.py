@@ -1,6 +1,6 @@
 import time
 from backend.celery_app import celery_app
-from backend.ingestors.ingestor import Ingestor, IngestFailed
+from backend.ingestors.base_ingestor import Ingestor, IngestFailed
 from backend.config import CHUNKER, FILE_STORE, VECTOR_STORE, APP_STATE
 
 

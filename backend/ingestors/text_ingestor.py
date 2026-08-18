@@ -1,7 +1,7 @@
-from .ingestor import Ingestor, IngestableFile
+from .base_ingestor import BaseIngestor, IngestionError, IngestableFile
 
 
-class TextIngestor(Ingestor):
+class TextIngestor(BaseIngestor):
     def __init__(
         self, type="text", accepted_format: list[str] = None, name="default text"
     ):

@@ -2,7 +2,7 @@ from fastapi import FastAPI, File, HTTPException, Response, UploadFile
 import asyncio
 from typing import Annotated
 from backend.filestore.base_filestore import IngestableFile
-from backend.ingestors.ingestor import Ingestor
+from backend.ingestors.base_ingestor import Ingestor
 from backend.tasks import process_ingest_file
 from backend.config import FILE_STORE, VECTOR_STORE, APP_STATE
 from backend.search import SearchRequest, build_where, shape_search_response

@@ -6,7 +6,7 @@ from functools import cached_property
 from dotenv import load_dotenv
 from openai import OpenAI, RateLimitError
 
-from backend.ingestors.ingestor import IngestableFile, IngestFailed, Ingestor
+from backend.ingestors.base_ingestor import IngestableFile, IngestionError, BaseIngestor
 from backend.ingestors.ocr_utils import get_ocr_engine
 
 load_dotenv()
@@ -18,7 +18,7 @@ def encode_image(image_file):
     return base64.b64encode(image_file.read()).decode("utf-8")
 
 
-class ImageOCRIngestor(Ingestor):
+class ImageOCRIngestor(BaseIngestor):
     @cached_property
     def engine(self):
         return get_ocr_engine()
@@ -39,7 +39,7 @@ class ImageOCRIngestor(Ingestor):
         if self.use_api:
             text += f", Image Description: {self.api_caption(file)}"
         if text == "":
-            raise IngestFailed(
+            raise IngestionError(
                 f"Image {file.file_name} didn't produce text via OCR, please enable API."
             )
         return text, self.extract_metadata(file)

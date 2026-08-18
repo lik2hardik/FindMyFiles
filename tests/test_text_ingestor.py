@@ -1,7 +1,7 @@
 import pytest
 from backend.ingestors.text_ingestor import TextIngestor
 from backend.filestore.base_filestore import IngestableFile
-from backend.ingestors.ingestor import Metadata
+from backend.ingestors.base_ingestor import Metadata
 
 
 def test_text_ingestor_extracts_valid_text(tmp_path):

@@ -4,7 +4,7 @@ import pytest
 import chromadb
 from chromadb.api.types import EmbeddingFunction, Documents
 
-from backend.ingestors.ingestor import Metadata
+from backend.ingestors.base_ingestor import Metadata
 from backend.vector_store.base_vector_store import VectorStoreError
 from backend.vector_store.local_vec_store import (
     ChromaDBError,

@@ -1,10 +1,10 @@
 import pymupdf
 
-from backend.ingestors.ingestor import IngestFailed, Ingestor
+from backend.ingestors.base_ingestor import IngestionError, BaseIngestor
 from backend.ingestors.ocr_utils import ocr_bytes
 
 
-class PdfIngestor(Ingestor):
+class PdfIngestor(BaseIngestor):
     def __init__(self, type="pdf", accepted_format=None, name="PDF"):
         super().__init__(type, accepted_format, name)
 
@@ -25,11 +25,11 @@ class PdfIngestor(Ingestor):
                     if text:
                         page_texts.append(f"[Page {page_num}]\n{text}")
         except Exception as e:
-            raise IngestFailed(f"PDF {file.file_name} could not be parsed: {e}") from e
+            raise IngestionError(f"PDF {file.file_name} could not be parsed: {e}") from e
 
         text = "\n\n".join(page_texts).strip()
         if not text:
-            raise IngestFailed(
+            raise IngestionError(
                 f"PDF {file.file_name} produced no text via extraction or OCR."
             )
 

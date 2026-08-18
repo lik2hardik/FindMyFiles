@@ -1,4 +1,4 @@
-from .ingestor import Ingestor, IngestableFile
+from .base_ingestor import BaseIngestor, IngestableFile
 from dotenv import load_dotenv
 from openai import OpenAI
 from faster_whisper import WhisperModel
@@ -10,7 +10,7 @@ load_dotenv()
 GROQ_KEY = os.environ.get("GROQ_KEY")
 
 
-class AudioIngestor(Ingestor):
+class AudioIngestor(BaseIngestor):
     @cached_property
     def whisper(self):
         return WhisperModel("base", device="cpu", compute_type="int8")
