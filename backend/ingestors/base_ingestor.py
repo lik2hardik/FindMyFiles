@@ -13,24 +13,32 @@ class Metadata(BaseModel):
     )
 
 class IngestionError(Exception):
-    "Ingestor Failed to extract text from the File."
+    "Generic Ingestion Error when extracting text from a file failed."
     pass
 
 
 class BaseIngestor(ABC):
     "Class to Ingest file into chunks and metadata."
 
-    accepted_formats = []  # to store all accepted formats
-    ingestor_map = {}  # stores which format corrosponds to which ingestor
+
+    all_formats = set()  # to store all accepted formats
+    ingestor_map = dict()  # stores which format corrosponds to which ingestor
 
     def __init__(self, type=None, accepted_format=None, name="default"):
         self.name = name
         self.type = type
-        self.accepted_format = accepted_format
+        self.accepted_formats = accepted_format
+        self.update_ingestor_map()  # register this ingestor with the format map (used by child classes)
 
-        BaseIngestor.accepted_formats.extend(self.accepted_format)
-        for format in self.accepted_format:
+    def update_ingestor_map(self):
+        for format in self.accepted_formats:
+            if format in BaseIngestor.all_formats:
+                raise IngestorError(f"Format {format} is already registered by {BaseIngestor.ingestor_map[format].name}.")
+
+        for format in self.accepted_formats:
+            BaseIngestor.all_formats.add(format)
             BaseIngestor.ingestor_map[format] = self
+
 
     @abstractmethod
     def extract_text(self, file: IngestableFile) -> tuple[str, Metadata]:
