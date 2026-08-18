@@ -24,7 +24,7 @@ class BaseIngestor(ABC):
     all_formats = set()  # to store all accepted formats
     ingestor_map = dict()  # stores which format corrosponds to which ingestor
 
-    def __init__(self, type=None, accepted_formats=None, name="default"):
+    def __init__(self, type: str | None = None, accepted_formats: list[str] | None = None, name: str = "default"):
         self.name = name
         self.type = type
         self.accepted_formats = accepted_formats or []
