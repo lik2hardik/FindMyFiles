@@ -24,21 +24,22 @@ class BaseIngestor(ABC):
     all_formats = set()  # to store all accepted formats
     ingestor_map = dict()  # stores which format corrosponds to which ingestor
 
-    def __init__(self, type=None, accepted_format=None, name="default"):
+    def __init__(self, type=None, accepted_formats=None, name="default"):
         self.name = name
         self.type = type
-        self.accepted_formats = accepted_format
+        self.accepted_formats = accepted_formats or []
         self.update_ingestor_map()  # register this ingestor with the format map (used by child classes)
 
     def update_ingestor_map(self):
         for format in self.accepted_formats:
-            if format in BaseIngestor.all_formats:
-                raise IngestorError(f"Format {format} is already registered by {BaseIngestor.ingestor_map[format].name}.")
-
+            existing = BaseIngestor.ingestor_map.get(format)
+            if existing is not None and existing.__class__ is not self.__class__:
+                raise IngestionError(
+                    f"Format {format} is already registered by {existing.name}."
+                )
         for format in self.accepted_formats:
             BaseIngestor.all_formats.add(format)
             BaseIngestor.ingestor_map[format] = self
-
 
     @abstractmethod
     def extract_text(self, file: IngestableFile) -> tuple[str, Metadata]:
@@ -48,6 +49,9 @@ class BaseIngestor(ABC):
         pass
 
     def extract_metadata(self, file: IngestableFile) -> Metadata:
-        return Metadata(
-            file_name=file.file_name, type=self.type, extension=file.extension
-        )
+        try:
+            return Metadata(
+                file_name=file.file_name, type=self.type, extension=file.extension
+            )
+        except Exception as e:
+            raise IngestionError(f"Failed to extract metadata: {e}") from e

@@ -1,5 +1,5 @@
 from .base_vector_store import BaseVectorStore, VectorStoreError
-from ..ingestors.ingestor import Metadata
+from ..ingestors.base_ingestor import Metadata
 import chromadb
 from functools import cached_property
 
