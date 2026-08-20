@@ -20,4 +20,4 @@ class RecursiveChunker(BaseChunker):
             chunks = self.splitter.split_text(text)
             return chunks
         except Exception as e:
-            raise ChunkingError(f"Failed to split text: {str(e)}")
+            raise ChunkingError(f"Failed to split text: {str(e)}") from e

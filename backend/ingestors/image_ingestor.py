@@ -63,6 +63,8 @@ class ImageOCRIngestor(BaseIngestor):
             else:
                 text = ""
             return text
+        except IngestionError as e:
+            raise e
         except Exception as e:
             raise IngestionError(f"Failed to extract text via OCR: {str(e)}") from e
 
@@ -76,12 +78,12 @@ class ImageOCRIngestor(BaseIngestor):
         if timeout is None:
             timeout = REQUEST_LIMIT # set timeout value for each request
 
-        _ = file.file_obj.seek(0)
-        base64_image = encode_image(file.file_obj)
-
         timeout -= 1
 
         try:
+            file.file_obj.seek(0)
+            base64_image = encode_image(file.file_obj)
+
             response = self.client.chat.completions.create(
                 model="qwen/qwen3.6-27b",
                 messages=[
@@ -133,4 +135,4 @@ class ImageOCRIngestor(BaseIngestor):
             return self.api_caption(file, timeout = timeout)
 
         except Exception as e:
-            raise IngestionError(f"Failed to fetch image captions via API: {str(e)}")
+            raise IngestionError(f"Failed to fetch image captions via API: {str(e)}") from e
