@@ -206,7 +206,7 @@ class TestErrorHandling:
     def test_constructor_wraps_unexpected_errors(self, isolated_registry):
         """An unexpected failure inside super().__init__ (here: an unhashable
         format) is wrapped in a chained IngestionError."""
-        with pytest.raises(IngestionError, match="Failed to initialize TextIngestor") as exc:
+        with pytest.raises(IngestionError, match="Failed to update ingestor map") as exc:
             TextIngestor(accepted_formats=[["unhashable"]])
 
         assert isinstance(exc.value.__cause__, TypeError)
