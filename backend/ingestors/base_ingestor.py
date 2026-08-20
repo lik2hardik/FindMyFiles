@@ -28,7 +28,12 @@ class BaseIngestor(ABC):
         self.name = name
         self.type = type
         self.accepted_formats = accepted_formats or []
-        self.update_ingestor_map()  # register this ingestor with the format map (used by child classes)
+        try:
+            self.update_ingestor_map()  # register this ingestor with the format map (used by child classes)
+        except IngestionError as e:
+            raise e
+        except Exception as e:
+            raise IngestionError(f"Failed to update ingestor map: {str(e)}") from e
 
     def update_ingestor_map(self):
         for format in self.accepted_formats:
