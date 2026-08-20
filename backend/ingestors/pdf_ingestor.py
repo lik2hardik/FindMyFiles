@@ -5,16 +5,21 @@ from backend.ingestors.ocr_utils import ocr_bytes
 
 
 class PdfIngestor(BaseIngestor):
-    def __init__(self, type="pdf", accepted_format=None, name="PDF"):
-        super().__init__(type, accepted_format, name)
+    def __init__(self, type="pdf", accepted_formats=None, name="PDF"):
+        try:
+            super().__init__(type, accepted_formats, name)
+        except IngestionError as e:
+            raise e
+        except Exception as e:
+            raise IngestionError(f"Failed to initialize PdfIngestor: {str(e)}") from e
 
     def extract_text(self, file):
-        file.file_obj.seek(0)
-        data = file.file_obj.read()
-        if isinstance(data, str):
-            data = data.encode("utf-8")
-
         try:
+            file.file_obj.seek(0)
+            data = file.file_obj.read()
+            if isinstance(data, str):
+                data = data.encode("utf-8")
+
             with pymupdf.open(stream=data, filetype="pdf") as doc:
                 page_texts = []
                 for page_num, page in enumerate(doc, start=1):
@@ -24,6 +29,8 @@ class PdfIngestor(BaseIngestor):
                         text = ocr_bytes(pix.tobytes("png")).strip()
                     if text:
                         page_texts.append(f"[Page {page_num}]\n{text}")
+        except IngestionError as e:
+            raise e
         except Exception as e:
             raise IngestionError(f"PDF {file.file_name} could not be parsed: {e}") from e
 

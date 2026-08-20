@@ -19,10 +19,10 @@ ENV_PATH = PROJECT_ROOT / ".env"
 dotenv.load_dotenv(dotenv_path=ENV_PATH, override=False)
 GROQ_KEY = os.getenv("GROQ_KEY", "").strip() or None
 
-TEXT_INGESTOR = TextIngestor(accepted_format=["txt", "md"])
-IMG_INGESTOR = ImageOCRIngestor(accepted_format=["jpg", "png", "jpeg"], use_api=True)
-AUDIO_INGESTOR = AudioIngestor(accepted_format=["wav", "mp3"], use_api=False)
-PDF_INGESTOR = PdfIngestor(accepted_format=["pdf"])
+TEXT_INGESTOR = TextIngestor(accepted_formats=["txt", "md"])
+IMG_INGESTOR = ImageOCRIngestor(accepted_formats=["jpg", "png", "jpeg"], use_api=True)
+AUDIO_INGESTOR = AudioIngestor(accepted_formats=["wav", "mp3"], use_api=False)
+PDF_INGESTOR = PdfIngestor(accepted_formats=["pdf"])
 
 CHUNKER = RecursiveChunker(chunk_size=512, overlap=64)
 
