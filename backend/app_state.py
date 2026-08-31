@@ -3,6 +3,10 @@ from sqlmodel import SQLModel, Field, Session, select
 from sqlalchemy import func, create_engine
 import os
 
+class AppStateError(Exception):
+    """Custom exception for AppState errors."""
+    pass
+
 
 class AppStateDB(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -36,16 +40,20 @@ def row_to_dict(file_row):
 
 class AppState:
     def __init__(self, db_path="backend/data/app_data"):
-        self.DATABASE_URL = f"sqlite:///{os.path.join(db_path, 'app_state.db')}"
-        os.makedirs(db_path, exist_ok=True)
-        self.engine = create_engine(
-            self.DATABASE_URL,
-            echo=True,
-            connect_args={"check_same_thread": False},
-        )
-        with self.engine.connect() as conn:
-            conn.exec_driver_sql("PRAGMA journal_mode=WAL")
-        SQLModel.metadata.create_all(self.engine)
+        try:
+            self.DATABASE_URL = f"sqlite:///{os.path.join(db_path, 'app_state.db')}"
+            os.makedirs(db_path, exist_ok=True)
+            self.engine = create_engine(
+                self.DATABASE_URL,
+                echo=True,
+                connect_args={"check_same_thread": False},
+            )
+            with self.engine.connect() as conn:
+                conn.exec_driver_sql("PRAGMA journal_mode=WAL")
+            SQLModel.metadata.create_all(self.engine)
+        except Exception as e:
+            raise AppStateError(f"Failed to initialize AppState Database: {e}") from e
+
 
     def insert_file(
         self,
@@ -54,52 +62,64 @@ class AppState:
         file_status: str,
         file_id: int | None = None,
     ):
-        if not all([file_name, file_type, file_status]):
-            raise ValueError("need all fields file name, status, type")
+        try:
+            if not all([file_name, file_type, file_status]):
+                raise ValueError("need all fields file name, status, type")
 
-        with Session(self.engine) as session:
-            row = AppStateDB(
-                file_type=file_type,
-                status=file_status,
-                name=file_name,
-                file_id=file_id,
-            )
-            session.add(row)
-            session.commit()
-            session.refresh(row)
+            with Session(self.engine) as session:
+                row = AppStateDB(
+                    file_type=file_type,
+                    status=file_status,
+                    name=file_name,
+                    file_id=file_id,
+                )
+                session.add(row)
+                session.commit()
+                session.refresh(row)
 
-            return row.id
+                return row.id
+        except Exception as e:
+            raise AppStateError(f"Failed to insert file: {e}") from e
 
     def update_file(self, file_id: int, status=None, error_msg=None):
-        with Session(self.engine) as session:
-            statement = select(AppStateDB).where(AppStateDB.id == file_id)
-            file_row = session.exec(statement).one_or_none()
+        try:
+            with Session(self.engine) as session:
+                statement = select(AppStateDB).where(AppStateDB.id == file_id)
+                file_row = session.exec(statement).one_or_none()
 
-            if not file_row:
-                raise FileNotFoundError(
-                    f"No file entry found in database for ID: {file_id}"
-                )
+                if not file_row:
+                    raise FileNotFoundError(
+                        f"No file entry found in database for ID: {file_id}"
+                    )
 
-            if status is not None:
-                file_row.status = status
-            if error_msg is not None:
-                file_row.error_message = error_msg
-            session.commit()
+                if status is not None:
+                    file_row.status = status
+                if error_msg is not None:
+                    file_row.error_message = error_msg
+                session.commit()
+        except Exception as e:
+            raise AppStateError(f"Failed to update file: {e}") from e
 
     def get_status_by_id(self, file_id):
-        with Session(self.engine) as session:
-            statement = select(AppStateDB).where(AppStateDB.id == file_id)
-            file_row = session.exec(statement).one_or_none()
+        try:
+            with Session(self.engine) as session:
+                statement = select(AppStateDB).where(AppStateDB.id == file_id)
+                file_row = session.exec(statement).one_or_none()
 
-            if not file_row:
-                raise FileNotFoundError(
-                    f"No file entry found in database for ID: {file_id}"
-                )
-            return row_to_dict(file_row)
+                if not file_row:
+                    raise FileNotFoundError(
+                        f"No file entry found in database for ID: {file_id}"
+                    )
+                return row_to_dict(file_row)
+        except Exception as e:
+            raise AppStateError(f"Failed to get status by id: {e}") from e
 
     def get_status_all(self):
-        with Session(self.engine) as session:
-            statement = select(AppStateDB)
-            file_rows = session.exec(statement).all()
+        try:
+            with Session(self.engine) as session:
+                statement = select(AppStateDB)
+                file_rows = session.exec(statement).all()
 
-            return [row_to_dict(row) for row in file_rows]
+                return [row_to_dict(row) for row in file_rows]
+        except Exception as e:
+            raise AppStateError(f"Failed to get status all: {e}") from e
