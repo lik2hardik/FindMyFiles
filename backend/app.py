@@ -2,7 +2,7 @@ from fastapi import FastAPI, File, HTTPException, Response, UploadFile
 import asyncio
 from typing import Annotated
 from backend.filestore.base_filestore import IngestableFile
-from backend.ingestors.base_ingestor import Ingestor
+from backend.ingestors.base_ingestor import BaseIngestor
 from backend.tasks import process_ingest_file
 from backend.config import FILE_STORE, VECTOR_STORE, APP_STATE
 from backend.search import SearchRequest, build_where, shape_search_response
@@ -31,7 +31,7 @@ def statistics():
 async def upload_file(file: Annotated[UploadFile, File()]):
     ingestable_file = IngestableFile(file.file, file.filename)
 
-    if ingestable_file.extension in Ingestor.accepted_formats:
+    if ingestable_file.extension in BaseIngestor.all_formats:
         file_id = await asyncio.to_thread(FILE_STORE.store, ingestable_file)
 
         app_state_id = APP_STATE.insert_file(
@@ -47,14 +47,14 @@ async def upload_file(file: Annotated[UploadFile, File()]):
             "app_state_id": app_state_id,
             "file_id": file_id,
         }
-    return {"acceptable_formats": Ingestor.accepted_formats}
+    return {"acceptable_formats": BaseIngestor.all_formats}
 
 
 @app.post("/search/")
 def search(request: SearchRequest):
     if request.extension:
         unknown = [
-            ext for ext in request.extension if ext not in Ingestor.accepted_formats
+            ext for ext in request.extension if ext not in BaseIngestor.all_formats
         ]
         if unknown:
             raise HTTPException(
@@ -62,7 +62,7 @@ def search(request: SearchRequest):
                 detail={
                     "message": "Unsupported file extension(s)",
                     "unknown_extensions": unknown,
-                    "acceptable_formats": Ingestor.accepted_formats,
+                    "acceptable_formats": BaseIngestor.all_formats,
                 },
             )
 
@@ -137,4 +137,4 @@ def file_status(file_id: int):
 
 @app.get("/formats")
 def get_formats():
-    return Ingestor.accepted_formats
+    return list(BaseIngestor.all_formats)
