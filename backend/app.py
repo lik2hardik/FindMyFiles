@@ -1,7 +1,10 @@
 from fastapi import FastAPI, File, HTTPException, Response, UploadFile
 import asyncio
 from typing import Annotated
-from backend.filestore.base_filestore import IngestableFile
+from backend.filestore.base_filestore import FileStoreError, IngestableFile
+from backend.filestore.local_filestore import DataNotFoundError
+from backend.app_state import AppStateError
+from backend.vector_store.base_vector_store import VectorStoreError
 from backend.ingestors.base_ingestor import BaseIngestor
 from backend.tasks import process_ingest_file
 from backend.config import FILE_STORE, VECTOR_STORE, APP_STATE
@@ -24,7 +27,10 @@ MEDIA_TYPES = {
 @app.get("/")
 def statistics():
     "route to return the statistics of application, i.e. Ingestion status , health etc"
-    return APP_STATE.get_status_all()
+    try:
+        return APP_STATE.get_status_all()
+    except AppStateError as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.post("/upload/")
@@ -32,22 +38,37 @@ async def upload_file(file: Annotated[UploadFile, File()]):
     ingestable_file = IngestableFile(file.file, file.filename)
 
     if ingestable_file.extension in BaseIngestor.all_formats:
-        file_id = await asyncio.to_thread(FILE_STORE.store, ingestable_file)
+        try:
+            file_id = await asyncio.to_thread(FILE_STORE.store, ingestable_file)
+        except FileStoreError as e:
+            raise HTTPException(status_code=500, detail=str(e)) from e
 
-        app_state_id = APP_STATE.insert_file(
-            file_name=ingestable_file.file_name,
-            file_type=ingestable_file.extension,
-            file_status="Storage Complete",
-            file_id=file_id,
-        )
-        task = process_ingest_file.delay(file_id, app_state_id)
+        try:
+            app_state_id = APP_STATE.insert_file(
+                file_name=ingestable_file.file_name,
+                file_type=ingestable_file.extension,
+                file_status="Storage Complete",
+                file_id=file_id,
+            )
+        except AppStateError as e:
+            raise HTTPException(status_code=500, detail=str(e)) from e
+
+        try:
+            task = process_ingest_file.delay(file_id, app_state_id)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e)) from e
+
         return {
             "message": "Task has been sent to the background worker pool",
             "task_id": task.id,
             "app_state_id": app_state_id,
             "file_id": file_id,
         }
-    return {"acceptable_formats": BaseIngestor.all_formats}
+    raise HTTPException(
+        status_code=422,
+        detail={"message": f"Unsupported file extension: {ingestable_file.extension}",
+                "acceptable_formats": list(BaseIngestor.all_formats)},
+        )
 
 
 @app.post("/search/")
@@ -77,13 +98,19 @@ def search(request: SearchRequest):
         )
 
     where = build_where(request.extension, request.date_from, request.date_to)
-    raw = VECTOR_STORE.get(request.q, k=request.k, constraints=where)
+    try:
+        raw = VECTOR_STORE.get(request.q, k=request.k, constraints=where)
+    except VectorStoreError as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
     return shape_search_response(raw, request)
 
 
 @app.get("/files/")
 def list_files():
-    rows = APP_STATE.get_status_all()
+    try:
+        rows = APP_STATE.get_status_all()
+    except AppStateError as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
     for row in rows:
         file_id = row.get("file_id")
         row["file_size"] = None
@@ -91,7 +118,7 @@ def list_files():
             try:
                 meta = FILE_STORE.get_metadata(file_id)
                 row["file_size"] = meta["size"]
-            except FileNotFoundError:
+            except FileStoreError:
                 pass
 
         if row.get("add_timestamp") and row.get("last_update_timestamp"):
@@ -107,8 +134,10 @@ def list_files():
 def get_file_contents(file_id: int):
     try:
         ingestable_file = FILE_STORE.get(file_id)
-    except (FileNotFoundError, IOError) as e:
+    except DataNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
+    except FileStoreError as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
     media_type = MEDIA_TYPES.get(ingestable_file.extension, "application/octet-stream")
     file_obj = ingestable_file.file_obj

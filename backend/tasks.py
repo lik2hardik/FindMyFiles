@@ -1,7 +1,11 @@
+from re import A
 import time
+
+from sqlalchemy.engine.result import exc
 from backend.celery_app import celery_app
 from backend.ingestors.base_ingestor import BaseIngestor, IngestionError
 from backend.config import CHUNKER, FILE_STORE, VECTOR_STORE, APP_STATE
+from backend.app_state import AppStateError
 
 
 @celery_app.task(name="tasks.ingest_file")
@@ -12,7 +16,7 @@ def process_ingest_file(file_id, app_state_id) -> str:
         file = FILE_STORE.get(file_id)
         print(f"Starting processing for {file.file_name}...")
 
-        ingestor: BaseIngestor = BaseIngestor.ingestor_map.get(file.extension, None)
+        ingestor: BaseIngestor | None = BaseIngestor.ingestor_map.get(file.extension, None)
 
         if ingestor is None:
             raise IngestionError(f"No ingestor found for file type: {file.extension}")
@@ -32,18 +36,33 @@ def process_ingest_file(file_id, app_state_id) -> str:
 
         print(f"Finished processing {file.file_name}!")
 
-        return 0
 
     except IngestionError as e:
-        APP_STATE.update_file(
-            app_state_id, status="Ingestion Failed", error_msg=f"Ingestion Error: {e}"
-        )
+        try:
+            APP_STATE.update_file(
+                app_state_id, status="Ingestion Failed", error_msg=f"Ingestion Error: {e}"
+            )
+        except AppStateError as app_state_e:
+            return f"AppState Error: {app_state_e}"
+
         return f"Ingestion Error: {e}"
 
+    except AppStateError as e:
+        try:
+            APP_STATE.update_file(
+                app_state_id, status="Ingestion Failed", error_msg=f"AppState Error: {e}"
+            )
+        except AppStateError as app_state_e:
+            return f"AppState Error: {app_state_e}"
+        return f"AppState Error: {e}"
+
     except Exception as e:
-        APP_STATE.update_file(
-            app_state_id,
-            status="Ingestion Failed",
-            error_msg=f"Unexpected error during ingestion: {e}",
-        )
+        try:
+            APP_STATE.update_file(
+                app_state_id,
+                status="Ingestion Failed",
+                error_msg=f"Unexpected error during ingestion: {e}",
+            )
+        except AppStateError as app_state_e:
+            return f"AppState Error: {app_state_e}"
         return f"Unexpected error: {e}"

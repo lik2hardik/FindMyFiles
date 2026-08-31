@@ -1,5 +1,4 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from sqlalchemy.sql.selectable import elem
 from .base_chunker import BaseChunker, ChunkingError
 from functools import cached_property
 

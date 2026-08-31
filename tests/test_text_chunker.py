@@ -18,7 +18,7 @@ def test_text_ingestor_extracts_valid_chunks():
 
 
 def test_invalid_chunker_init():
-    with pytest.raises(ValueError):
+    with pytest.raises(ChunkingError):
         RecursiveChunker(chunk_size=-1, overlap=10)
 
 

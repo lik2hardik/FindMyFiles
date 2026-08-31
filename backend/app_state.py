@@ -105,14 +105,13 @@ class AppState:
             with Session(self.engine) as session:
                 statement = select(AppStateDB).where(AppStateDB.id == file_id)
                 file_row = session.exec(statement).one_or_none()
-
-                if not file_row:
-                    raise FileNotFoundError(
-                        f"No file entry found in database for ID: {file_id}"
-                    )
-                return row_to_dict(file_row)
         except Exception as e:
             raise AppStateError(f"Failed to get status by id: {e}") from e
+
+        if not file_row:
+            raise FileNotFoundError(f"No file entry found in database for ID: {file_id}")
+
+        return row_to_dict(file_row)
 
     def get_status_all(self):
         try:
