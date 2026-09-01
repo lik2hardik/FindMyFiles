@@ -1,11 +1,10 @@
-from re import A
-import time
-
-from sqlalchemy.engine.result import exc
 from backend.celery_app import celery_app
+from backend.chunker import ChunkingError
+from backend.filestore.base_filestore import FileStoreError
 from backend.ingestors.base_ingestor import BaseIngestor, IngestionError
 from backend.config import CHUNKER, FILE_STORE, VECTOR_STORE, APP_STATE
 from backend.app_state import AppStateError
+from backend.vector_store.base_vector_store import VectorStoreError
 
 
 @celery_app.task(name="tasks.ingest_file")
@@ -56,6 +55,38 @@ def process_ingest_file(file_id, app_state_id) -> str:
             return f"AppState Error: {app_state_e}"
         return f"AppState Error: {e}"
 
+    except ChunkingError as e:
+        try:
+            APP_STATE.update_file(
+                app_state_id,
+                status="Ingestion Failed",
+                error_msg=f"Chunking Error: {e}",
+            )
+        except AppStateError as app_state_e:
+            return f"AppState Error: {app_state_e}"
+        return f"Chunking Error: {e}"
+
+    except VectorStoreError as e:
+        try:
+            APP_STATE.update_file(
+                app_state_id,
+                status="Ingestion Failed",
+                error_msg=f"VectorStore Error: {e}",
+            )
+        except AppStateError as app_state_e:
+            return f"AppState Error: {app_state_e}"
+        return f"VectorStore Error: {e}"
+
+    except FileStoreError as e:
+        try:
+            APP_STATE.update_file(
+                app_state_id,
+                status="Ingestion Failed",
+                error_msg=f"Ingestion Error: {e}",
+            )
+        except AppStateError as app_state_e:
+            return f"AppState Error: {app_state_e}"
+        return f"Ingestion Error: {e}"
     except Exception as e:
         try:
             APP_STATE.update_file(

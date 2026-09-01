@@ -83,7 +83,7 @@ def search(request: SearchRequest):
                 detail={
                     "message": "Unsupported file extension(s)",
                     "unknown_extensions": unknown,
-                    "acceptable_formats": BaseIngestor.all_formats,
+                    "acceptable_formats": list(BaseIngestor.all_formats),
                 },
             )
 

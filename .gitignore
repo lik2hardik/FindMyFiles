@@ -10,3 +10,5 @@ dump.rdb
 .ruff_cache/
 .pytest_cache/
 .gradio/
+
+.vscode
