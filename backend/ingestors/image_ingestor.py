@@ -11,7 +11,9 @@ from backend.ingestors.ocr_utils import get_ocr_engine
 
 load_dotenv()
 
-GROQ_KEY = os.environ.get("GROQ_KEY")
+LLM_API_KEY = os.getenv("LLM_API_KEY", "").strip() or os.getenv("GROQ_KEY", "").strip() or None
+LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.groq.com/openai/v1")
+LLM_VISION_MODEL = os.getenv("LLM_VISION_MODEL", "qwen/qwen3.6-27b")
 REQUEST_LIMIT = 5
 
 def encode_image(image_file):
@@ -27,10 +29,10 @@ class ImageOCRIngestor(BaseIngestor):
         try:
             super().__init__(type, accepted_formats, name)
             self.client = None
-            if GROQ_KEY:
+            if LLM_API_KEY:
                 self.client = OpenAI(
-                    api_key=GROQ_KEY,
-                    base_url="https://api.groq.com/openai/v1",
+                    api_key=LLM_API_KEY,
+                    base_url=LLM_BASE_URL,
                 )
             self.use_api = use_api
         except IngestionError as e:
@@ -69,7 +71,7 @@ class ImageOCRIngestor(BaseIngestor):
             raise IngestionError(f"Failed to extract text via OCR: {str(e)}") from e
 
     def api_caption(self, file: IngestableFile, timeout: int | None = None):
-        """Calls a groq model to generate image captions."""
+        """Calls a vision model to generate image captions."""
         if not self.client:
             raise IngestionError("API key not provided.")
         if timeout is not None and timeout <= 0:
@@ -85,7 +87,7 @@ class ImageOCRIngestor(BaseIngestor):
             base64_image = encode_image(file.file_obj)
 
             response = self.client.chat.completions.create(
-                model="qwen/qwen3.6-27b",
+                model=LLM_VISION_MODEL,
                 messages=[
                     {
                         "role": "user",

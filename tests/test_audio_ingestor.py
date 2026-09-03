@@ -184,7 +184,7 @@ class TestExtractTextApi:
     def test_api_transcription_returns_text_and_metadata(self, tmp_path, isolated_registry, monkeypatch):
         """API mode returns the transcribed text, forwards the right model/
         format/file arguments, and produces valid metadata."""
-        monkeypatch.setattr(m, "GROQ_KEY", "gsk-test")
+        monkeypatch.setattr(m, "LLM_API_KEY", "gsk-test")
         monkeypatch.setattr(m, "OpenAI", lambda *a, **k: FakeAudioClient())
 
         with make_file(tmp_path, "clip.mp3") as f:
@@ -194,7 +194,7 @@ class TestExtractTextApi:
 
         assert text == "transcribed api text"
         (call,) = ingestor.client.audio.transcriptions.calls
-        assert call["model"] == "whisper-large-v3-turbo"
+        assert call["model"] == m.LLM_AUDIO_MODEL
         assert call["response_format"] == "text"
         assert call["file"] == ("clip.mp3", ingestable.file_obj)
         assert metadata.extension == "mp3"
@@ -202,7 +202,7 @@ class TestExtractTextApi:
 
     def test_api_failure_wraps_as_ingestion_error(self, tmp_path, isolated_registry, monkeypatch):
         """An API transcription failure surfaces as a chained IngestionError."""
-        monkeypatch.setattr(m, "GROQ_KEY", "gsk-test")
+        monkeypatch.setattr(m, "LLM_API_KEY", "gsk-test")
         monkeypatch.setattr(m, "OpenAI", lambda *a, **k: FakeAudioClient())
 
         with make_file(tmp_path, "clip.mp3") as f:
@@ -214,18 +214,22 @@ class TestExtractTextApi:
 
         assert isinstance(exc.value.__cause__, RuntimeError)
 
-    def test_missing_groq_key_raises_ingestion_error_at_init(self, isolated_registry, monkeypatch):
-        """Constructing with use_api=True and no GROQ_KEY raises IngestionError,
-        not a raw ValueError."""
-        monkeypatch.setattr(m, "GROQ_KEY", None)
+    def test_missing_api_key_raises_ingestion_error_when_using_api(self, tmp_path, isolated_registry, monkeypatch):
+        """Constructing with use_api=True and no LLM_API_KEY is allowed,
+        but extract_text raises IngestionError when trying to use the API."""
+        monkeypatch.setattr(m, "LLM_API_KEY", None)
 
-        with pytest.raises(IngestionError, match="GROQ_KEY environment variable not set"):
-            AudioIngestor(accepted_formats=["mp3"], use_api=True)
+        ingestor = AudioIngestor(accepted_formats=["mp3"], use_api=True)
+        assert ingestor.client is None
+
+        with make_file(tmp_path, "clip.mp3") as f:
+            with pytest.raises(IngestionError, match="LLM_API_KEY or GROQ_KEY environment variable not set"):
+                ingestor.extract_text(IngestableFile(f, "clip.mp3"))
 
     def test_local_mode_without_api_key_works(self, tmp_path, isolated_registry, monkeypatch):
-        """use_api=False constructs cleanly without a GROQ_KEY and transcribes
+        """use_api=False constructs cleanly without an API key and transcribes
         locally."""
-        monkeypatch.setattr(m, "GROQ_KEY", None)
+        monkeypatch.setattr(m, "LLM_API_KEY", None)
         monkeypatch.setattr(m, "WhisperModel", FakeWhisperModel)
 
         with make_file(tmp_path, "clip.wav") as f:

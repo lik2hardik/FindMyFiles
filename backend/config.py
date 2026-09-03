@@ -18,7 +18,11 @@ try:
     ENV_PATH = PROJECT_ROOT / ".env"
 
     dotenv.load_dotenv(dotenv_path=ENV_PATH, override=False)
-    GROQ_KEY = os.getenv("GROQ_KEY", "").strip() or None
+
+    LLM_API_KEY = os.getenv("LLM_API_KEY", "").strip() or os.getenv("GROQ_KEY", "").strip() or None
+    LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.groq.com/openai/v1")
+    LLM_VISION_MODEL = os.getenv("LLM_VISION_MODEL", "qwen/qwen3.6-27b")
+    LLM_AUDIO_MODEL = os.getenv("LLM_AUDIO_MODEL", "whisper-large-v3-turbo")
 
     TEXT_INGESTOR = TextIngestor(accepted_formats=["txt", "md"])
     IMG_INGESTOR = ImageOCRIngestor(accepted_formats=["jpg", "png", "jpeg"], use_api=True)

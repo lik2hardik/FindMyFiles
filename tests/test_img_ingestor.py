@@ -127,9 +127,9 @@ class FailingReadBytesIO(io.BytesIO):
 
 
 @pytest.fixture(autouse=True)
-def no_groq_key(monkeypatch):
-    """Isolate tests from a GROQ_KEY present in the real environment."""
-    monkeypatch.setattr(m, "GROQ_KEY", None)
+def no_api_key(monkeypatch):
+    """Isolate tests from an API key present in the real environment."""
+    monkeypatch.setattr(m, "LLM_API_KEY", None)
 
 
 @pytest.fixture
@@ -164,8 +164,8 @@ def make_file(tmp_path, name, data=b"image"):
 
 
 def make_client_with_key(monkeypatch):
-    """Point GROQ_KEY and OpenAI at the fake client and return the ingestor."""
-    monkeypatch.setattr(m, "GROQ_KEY", "test-key")
+    """Point LLM_API_KEY and OpenAI at the fake client and return the ingestor."""
+    monkeypatch.setattr(m, "LLM_API_KEY", "test-key")
     monkeypatch.setattr(m, "OpenAI", FakeOpenAIClient)
     return make_ingestor(["png"])
 
@@ -209,12 +209,12 @@ class TestInit:
         assert "png-conflict" in str(exc.value)
 
     def test_creates_openai_client_when_key_present(self, isolated_registry, monkeypatch):
-        """With GROQ_KEY set, an OpenAI client is built with the Groq base URL."""
+        """With LLM_API_KEY set, an OpenAI client is built with the configured base URL."""
         ingestor = make_client_with_key(monkeypatch)
         assert isinstance(ingestor.client, FakeOpenAIClient)
 
     def test_no_client_without_key(self, isolated_registry):
-        """Without GROQ_KEY, client stays None even with use_api=True."""
+        """Without LLM_API_KEY, client stays None even with use_api=True."""
         ingestor = make_ingestor(["png"], use_api=True)
         assert ingestor.client is None
 
@@ -324,7 +324,7 @@ class TestOcrExtract:
 
 class TestApiCaption:
     def test_missing_key_raises_ingestion_error(self, tmp_path, isolated_registry):
-        """No client (no GROQ_KEY) raises IngestionError, not ValueError."""
+        """No client (no LLM_API_KEY) raises IngestionError, not ValueError."""
         ingestor = make_ingestor(["png"], use_api=True)
         with make_file(tmp_path, "pic.png") as f:
             with pytest.raises(IngestionError, match="API key not provided."):
@@ -355,7 +355,7 @@ class TestApiCaption:
 
         assert caption == "a sunny beach"
         (call,) = ingestor.client.calls
-        assert call["model"] == "qwen/qwen3.6-27b"
+        assert call["model"] == m.LLM_VISION_MODEL
         assert call["max_tokens"] == 300
         assert call["temperature"] == 0.0
         image_url = call["messages"][0]["content"][1]["image_url"]["url"]
