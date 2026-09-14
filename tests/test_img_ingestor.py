@@ -93,7 +93,9 @@ class FakeOpenAIClient:
                 "POST", "https://api.groq.com/openai/v1/chat/completions"
             )
             response = httpx.Response(429, request=request)
-            raise openai.RateLimitError("429 rate limited", response=response, body=None)
+            raise openai.RateLimitError(
+                "429 rate limited", response=response, body=None
+            )
         return FakeResponse(self.content)
 
 
@@ -173,7 +175,9 @@ def make_client_with_key(monkeypatch):
 class TestEncodeImage:
     def test_encodes_bytes_as_base64(self):
         """encode_image returns the base64 text of the file contents."""
-        assert m.encode_image(io.BytesIO(b"hello")) == base64.b64encode(b"hello").decode()
+        assert (
+            m.encode_image(io.BytesIO(b"hello")) == base64.b64encode(b"hello").decode()
+        )
 
 
 class TestInit:
@@ -208,7 +212,9 @@ class TestInit:
             make_ingestor(["png-conflict"])
         assert "png-conflict" in str(exc.value)
 
-    def test_creates_openai_client_when_key_present(self, isolated_registry, monkeypatch):
+    def test_creates_openai_client_when_key_present(
+        self, isolated_registry, monkeypatch
+    ):
         """With LLM_API_KEY set, an OpenAI client is built with the configured base URL."""
         ingestor = make_client_with_key(monkeypatch)
         assert isinstance(ingestor.client, FakeOpenAIClient)
@@ -223,6 +229,7 @@ class TestInit:
     ):
         """A non-IngestionError during init surfaces as a chained
         IngestionError, not the raw exception."""
+
         def boom(self, *args, **kwargs):
             raise RuntimeError("boom")
 
@@ -233,9 +240,7 @@ class TestInit:
             make_ingestor(["png"])
         assert isinstance(exc.value.__cause__, RuntimeError)
 
-    def test_ingestion_error_from_init_propagates_unchanged(
-        self, isolated_registry
-    ):
+    def test_ingestion_error_from_init_propagates_unchanged(self, isolated_registry):
         """A registration conflict during init propagates unwrapped."""
         FakeOtherIngestor(accepted_formats=["conflict-png"])
         with pytest.raises(IngestionError, match="already registered") as exc:
@@ -286,12 +291,16 @@ class TestOcrExtract:
     ):
         """An engine crash surfaces as a chained IngestionError."""
         monkeypatch.setattr(
-            m, "get_ocr_engine", lambda: FakeOcrEngine(error=RuntimeError("engine crash"))
+            m,
+            "get_ocr_engine",
+            lambda: FakeOcrEngine(error=RuntimeError("engine crash")),
         )
 
         with make_file(tmp_path, "pic.png") as f:
             ingestor = make_ingestor(["png"], use_api=False)
-            with pytest.raises(IngestionError, match="Failed to extract text via OCR") as exc:
+            with pytest.raises(
+                IngestionError, match="Failed to extract text via OCR"
+            ) as exc:
                 ingestor.ocr_extract(IngestableFile(f, "pic.png"))
         assert isinstance(exc.value.__cause__, RuntimeError)
 
@@ -317,7 +326,9 @@ class TestOcrExtract:
         ingestor = make_ingestor(["png"], use_api=False)
         ingestable = IngestableFile(FailingReadBytesIO(b"x"), "pic.png")
 
-        with pytest.raises(IngestionError, match="Failed to extract text via OCR") as exc:
+        with pytest.raises(
+            IngestionError, match="Failed to extract text via OCR"
+        ) as exc:
             ingestor.ocr_extract(ingestable)
         assert isinstance(exc.value.__cause__, OSError)
 
@@ -330,9 +341,7 @@ class TestApiCaption:
             with pytest.raises(IngestionError, match="API key not provided."):
                 ingestor.api_caption(IngestableFile(f, "pic.png"))
 
-    def test_zero_timeout_raises_without_calling_api(
-        self, tmp_path, isolated_registry
-    ):
+    def test_zero_timeout_raises_without_calling_api(self, tmp_path, isolated_registry):
         """timeout=0 fails fast without any API call."""
         client = FakeOpenAIClient()
         ingestor = make_ingestor(["png"], use_api=True)
@@ -360,8 +369,7 @@ class TestApiCaption:
         assert call["temperature"] == 0.0
         image_url = call["messages"][0]["content"][1]["image_url"]["url"]
         assert image_url == (
-            "data:image/jpeg;base64,"
-            + base64.b64encode(b"img-data").decode()
+            "data:image/jpeg;base64," + base64.b64encode(b"img-data").decode()
         )
 
     def test_seeks_file_before_encoding(self, isolated_registry):
@@ -441,7 +449,9 @@ class TestApiCaption:
         ingestor.client = FakeOpenAIClient()
         ingestable = IngestableFile(FailingReadBytesIO(b"x"), "pic.png")
 
-        with pytest.raises(IngestionError, match="Failed to fetch image captions via API") as exc:
+        with pytest.raises(
+            IngestionError, match="Failed to fetch image captions via API"
+        ) as exc:
             ingestor.api_caption(ingestable)
         assert isinstance(exc.value.__cause__, OSError)
 
@@ -465,9 +475,7 @@ class TestExtractText:
         assert metadata.type == "img"
         assert isinstance(metadata.created_at_ts, float)
 
-    def test_api_mode_appends_caption(
-        self, tmp_path, isolated_registry, monkeypatch
-    ):
+    def test_api_mode_appends_caption(self, tmp_path, isolated_registry, monkeypatch):
         """use_api=True appends the caption to the OCR text."""
         monkeypatch.setattr(m, "get_ocr_engine", lambda: FakeOcrEngine())
         ingestor = make_ingestor(["png"], use_api=True)
@@ -478,7 +486,9 @@ class TestExtractText:
 
         assert text == "hello world, Image Description: a sunny beach"
 
-    def test_empty_ocr_without_api_raises(self, tmp_path, isolated_registry, monkeypatch):
+    def test_empty_ocr_without_api_raises(
+        self, tmp_path, isolated_registry, monkeypatch
+    ):
         """No OCR text and no API means extraction fails."""
         monkeypatch.setattr(m, "get_ocr_engine", lambda: FakeOcrEngine(result=[]))
 
@@ -518,11 +528,15 @@ class TestExtractText:
     ):
         """extract_text surfaces engine failures as a chained IngestionError."""
         monkeypatch.setattr(
-            m, "get_ocr_engine", lambda: FakeOcrEngine(error=RuntimeError("engine crash"))
+            m,
+            "get_ocr_engine",
+            lambda: FakeOcrEngine(error=RuntimeError("engine crash")),
         )
         ingestor = make_ingestor(["png"], use_api=False)
 
         with make_file(tmp_path, "pic.png") as f:
-            with pytest.raises(IngestionError, match="Failed to extract text via OCR") as exc:
+            with pytest.raises(
+                IngestionError, match="Failed to extract text via OCR"
+            ) as exc:
                 ingestor.extract_text(IngestableFile(f, "pic.png"))
         assert isinstance(exc.value.__cause__, RuntimeError)

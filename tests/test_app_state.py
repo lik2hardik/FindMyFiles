@@ -20,6 +20,7 @@ def state(tmp_path):
 # Insert
 # ===================================================================
 
+
 class TestInsert:
     def test_insert_returns_integer_id(self, state):
         """insert_file returns an integer id for the new row."""
@@ -70,6 +71,7 @@ class TestInsert:
 # Update
 # ===================================================================
 
+
 class TestUpdate:
     def test_update_changes_status(self, state):
         """update_file changes the status field."""
@@ -118,6 +120,7 @@ class TestUpdate:
 # get_status_all
 # ===================================================================
 
+
 class TestGetStatusAll:
     def test_empty_database_returns_empty_list(self, state):
         """get_status_all returns [] when no rows exist."""
@@ -139,8 +142,14 @@ class TestGetStatusAll:
         row = state.get_status_all()[0]
 
         expected_keys = {
-            "file_id", "app_state_id", "file_name", "file_type",
-            "add_timestamp", "last_update_timestamp", "status", "error_message",
+            "file_id",
+            "app_state_id",
+            "file_name",
+            "file_type",
+            "add_timestamp",
+            "last_update_timestamp",
+            "status",
+            "error_message",
         }
         assert set(row.keys()) == expected_keys
 
@@ -162,6 +171,7 @@ class TestGetStatusAll:
 # ===================================================================
 # get_status_by_id
 # ===================================================================
+
 
 class TestGetStatusById:
     def test_returns_correct_row(self, state):
@@ -191,6 +201,7 @@ class TestGetStatusById:
 # ===================================================================
 # Init
 # ===================================================================
+
 
 class TestInit:
     def test_init_creates_directory(self, tmp_path):
@@ -225,6 +236,7 @@ class TestInit:
 # ===================================================================
 # Full lifecycle
 # ===================================================================
+
 
 class TestLifecycle:
     def test_insert_update_get_lifecycle(self, state):

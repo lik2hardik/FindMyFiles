@@ -19,8 +19,9 @@ class RecursiveChunker(BaseChunker):
                 separators=["\n\n", "\n", " ", ""],
             )
         except Exception as e:
-            raise ChunkingError("Failed to Initialize RecursiveCharacterTextSplitter") from e
-
+            raise ChunkingError(
+                "Failed to Initialize RecursiveCharacterTextSplitter"
+            ) from e
 
     def split_text(self, text: str):
         try:

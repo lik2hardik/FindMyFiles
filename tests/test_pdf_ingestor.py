@@ -135,6 +135,7 @@ class TestInit:
     ):
         """A non-IngestionError during init surfaces as a chained
         IngestionError, not the raw exception."""
+
         def boom(self, *args, **kwargs):
             raise RuntimeError("boom")
 
@@ -145,9 +146,7 @@ class TestInit:
             make_ingestor(["pdf"])
         assert isinstance(exc.value.__cause__, RuntimeError)
 
-    def test_ingestion_error_from_init_propagates_unchanged(
-        self, isolated_registry
-    ):
+    def test_ingestion_error_from_init_propagates_unchanged(self, isolated_registry):
         """A registration conflict during init propagates unwrapped."""
         FakeOtherIngestor(accepted_formats=["conflict-pdf"])
         with pytest.raises(IngestionError, match="already registered") as exc:
@@ -156,7 +155,9 @@ class TestInit:
 
 
 class TestExtractText:
-    def test_text_pdf_extracts_all_pages_with_markers(self, tmp_path, isolated_registry):
+    def test_text_pdf_extracts_all_pages_with_markers(
+        self, tmp_path, isolated_registry
+    ):
         """Every page appears with a [Page N] marker in document order."""
         pdf_path = tmp_path / "sample.pdf"
         make_text_pdf(pdf_path, ["Hello from page one", "Second page content"])
@@ -197,7 +198,9 @@ class TestExtractText:
         assert metadata.type == "pdf"
         assert isinstance(metadata.created_at_ts, float)
 
-    def test_scanned_pdf_uses_ocr_fallback(self, tmp_path, isolated_registry, monkeypatch):
+    def test_scanned_pdf_uses_ocr_fallback(
+        self, tmp_path, isolated_registry, monkeypatch
+    ):
         """Pages with no text layer are OCR'd and included with markers."""
         pdf_path = tmp_path / "scan.pdf"
         make_image_pdf(pdf_path)
@@ -210,7 +213,9 @@ class TestExtractText:
         assert "[Page 1]" in text
         assert "scanned ocr text" in text
 
-    def test_mixed_text_and_scanned_pages(self, tmp_path, isolated_registry, monkeypatch):
+    def test_mixed_text_and_scanned_pages(
+        self, tmp_path, isolated_registry, monkeypatch
+    ):
         """Digital-text pages keep their text and blank pages get OCR'd."""
         pdf_path = tmp_path / "mixed.pdf"
         make_mixed_pdf(pdf_path)
@@ -224,13 +229,17 @@ class TestExtractText:
         assert "image page ocr" in text
         assert "image page ocr" not in text.split("digital text page")[0]
 
-    def test_ocr_failure_wraps_in_parse_error(self, tmp_path, isolated_registry, monkeypatch):
+    def test_ocr_failure_wraps_in_parse_error(
+        self, tmp_path, isolated_registry, monkeypatch
+    ):
         """An OCR crash on a blank page surfaces as a chained IngestionError."""
         pdf_path = tmp_path / "scan.pdf"
         make_image_pdf(pdf_path)
-        monkeypatch.setattr(m, "ocr_bytes", lambda b: (_ for _ in ()).throw(
-            RuntimeError("ocr engine crash")
-        ))
+        monkeypatch.setattr(
+            m,
+            "ocr_bytes",
+            lambda b: (_ for _ in ()).throw(RuntimeError("ocr engine crash")),
+        )
 
         with open(pdf_path, "rb") as f:
             ingestor = make_ingestor(["pdf"])
@@ -244,9 +253,9 @@ class TestExtractText:
         """An IngestionError from the OCR layer is not re-wrapped."""
         pdf_path = tmp_path / "scan.pdf"
         make_image_pdf(pdf_path)
-        monkeypatch.setattr(m, "ocr_bytes", lambda b: (_ for _ in ()).throw(
-            IngestionError("ocr boom")
-        ))
+        monkeypatch.setattr(
+            m, "ocr_bytes", lambda b: (_ for _ in ()).throw(IngestionError("ocr boom"))
+        )
 
         with open(pdf_path, "rb") as f:
             ingestor = make_ingestor(["pdf"])
@@ -264,7 +273,9 @@ class TestExtractText:
                 ingestor.extract_text(IngestableFile(f))
         assert isinstance(exc.value.__cause__, Exception)
 
-    def test_empty_pdf_raises_ingestion_error(self, tmp_path, isolated_registry, monkeypatch):
+    def test_empty_pdf_raises_ingestion_error(
+        self, tmp_path, isolated_registry, monkeypatch
+    ):
         """A page with neither text nor OCR results fails extraction."""
         pdf_path = tmp_path / "empty.pdf"
         doc = pymupdf.open()

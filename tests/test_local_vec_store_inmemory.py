@@ -176,7 +176,10 @@ class TestWhereFilters:
         real engine."""
         store.add(
             ["txt content", "pdf content"],
-            [make_metadata("a.txt", extension="txt"), make_metadata("b.pdf", extension="pdf")],
+            [
+                make_metadata("a.txt", extension="txt"),
+                make_metadata("b.pdf", extension="pdf"),
+            ],
         )
 
         results = store.get(
@@ -287,6 +290,7 @@ class TestErrorWrapping:
     def test_add_get_md5_failure_keeps_vector_store_error(self, monkeypatch):
         """A get_md5 failure keeps its VectorStoreError type instead of being
         double-wrapped into ChromaDBError."""
+
         def failing_md5(chunks):
             raise VectorStoreError("md5 failed")
 
@@ -300,6 +304,7 @@ class TestErrorWrapping:
     def test_client_factory_failure_wraps_as_chroma_db_error(self):
         """A client_factory that cannot connect surfaces as a chained
         ChromaDBError."""
+
         def factory():
             raise ConnectionError("refused")
 

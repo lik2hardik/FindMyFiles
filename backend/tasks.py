@@ -15,7 +15,9 @@ def process_ingest_file(file_id, app_state_id) -> str:
         file = FILE_STORE.get(file_id)
         print(f"Starting processing for {file.file_name}...")
 
-        ingestor: BaseIngestor | None = BaseIngestor.ingestor_map.get(file.extension, None)
+        ingestor: BaseIngestor | None = BaseIngestor.ingestor_map.get(
+            file.extension, None
+        )
 
         if ingestor is None:
             raise IngestionError(f"No ingestor found for file type: {file.extension}")
@@ -35,11 +37,12 @@ def process_ingest_file(file_id, app_state_id) -> str:
 
         print(f"Finished processing {file.file_name}!")
 
-
     except IngestionError as e:
         try:
             APP_STATE.update_file(
-                app_state_id, status="Ingestion Failed", error_msg=f"Ingestion Error: {e}"
+                app_state_id,
+                status="Ingestion Failed",
+                error_msg=f"Ingestion Error: {e}",
             )
         except AppStateError as app_state_e:
             return f"AppState Error: {app_state_e}"
@@ -49,7 +52,9 @@ def process_ingest_file(file_id, app_state_id) -> str:
     except AppStateError as e:
         try:
             APP_STATE.update_file(
-                app_state_id, status="Ingestion Failed", error_msg=f"AppState Error: {e}"
+                app_state_id,
+                status="Ingestion Failed",
+                error_msg=f"AppState Error: {e}",
             )
         except AppStateError as app_state_e:
             return f"AppState Error: {app_state_e}"

@@ -20,6 +20,7 @@ from backend.ingestors.base_ingestor import BaseIngestor, IngestionError, Metada
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture(autouse=True)
 def _isolated_registry():
     """Snapshot and restore the global ingestor registry."""
@@ -60,6 +61,7 @@ class FakeIngestor(BaseIngestor):
 # ===================================================================
 # Successful pipeline
 # ===================================================================
+
 
 class TestSuccessfulPipeline:
     @patch("backend.tasks.VECTOR_STORE")
@@ -120,7 +122,9 @@ class TestSuccessfulPipeline:
     @patch("backend.tasks.CHUNKER")
     @patch("backend.tasks.APP_STATE")
     @patch("backend.tasks.FILE_STORE")
-    def test_returns_nothing_on_success(self, mock_fs, mock_state, mock_chunker, mock_vs):
+    def test_returns_nothing_on_success(
+        self, mock_fs, mock_state, mock_chunker, mock_vs
+    ):
         """A successful task returns None (no error string)."""
         from backend.tasks import process_ingest_file
 
@@ -139,6 +143,7 @@ class TestSuccessfulPipeline:
 # IngestionError handling
 # ===================================================================
 
+
 class TestIngestionErrorHandling:
     @patch("backend.tasks.APP_STATE")
     @patch("backend.tasks.FILE_STORE")
@@ -153,7 +158,9 @@ class TestIngestionErrorHandling:
 
         assert "No ingestor found" in result
         mock_state.update_file.assert_called_once_with(
-            10, status="Ingestion Failed", error_msg="Ingestion Error: No ingestor found for file type: xyz"
+            10,
+            status="Ingestion Failed",
+            error_msg="Ingestion Error: No ingestor found for file type: xyz",
         )
 
     @patch("backend.tasks.APP_STATE")
@@ -172,7 +179,9 @@ class TestIngestionErrorHandling:
 
         assert "No text could be extracted" in result
         mock_state.update_file.assert_called_once_with(
-            10, status="Ingestion Failed", error_msg=mock_state.update_file.call_args[1]["error_msg"]
+            10,
+            status="Ingestion Failed",
+            error_msg=mock_state.update_file.call_args[1]["error_msg"],
         )
 
     @patch("backend.tasks.APP_STATE")
@@ -199,6 +208,7 @@ class TestIngestionErrorHandling:
 # AppStateError handling
 # ===================================================================
 
+
 class TestAppStateErrorHandling:
     @patch("backend.tasks.APP_STATE")
     @patch("backend.tasks.FILE_STORE")
@@ -220,7 +230,9 @@ class TestAppStateErrorHandling:
 
     @patch("backend.tasks.APP_STATE")
     @patch("backend.tasks.FILE_STORE")
-    def test_appstate_error_handler_also_fails_returns_appstate_error(self, mock_fs, mock_state):
+    def test_appstate_error_handler_also_fails_returns_appstate_error(
+        self, mock_fs, mock_state
+    ):
         """When both the pipeline and the error handler's update_file fail,
         the task returns the AppStateError from the handler."""
         from backend.tasks import process_ingest_file
@@ -231,7 +243,7 @@ class TestAppStateErrorHandling:
         mock_fs.get.return_value = _fake_file("doc.txt")
         # Both calls fail — first pipeline, then error handler
         mock_state.update_file.side_effect = [
-            AppStateError("first fail"),   # Ingestion Complete
+            AppStateError("first fail"),  # Ingestion Complete
             AppStateError("second fail"),  # error handler's update_file
         ]
 
@@ -243,6 +255,7 @@ class TestAppStateErrorHandling:
 # ===================================================================
 # Unexpected error handling
 # ===================================================================
+
 
 class TestUnexpectedErrorHandling:
     @patch("backend.tasks.APP_STATE")
@@ -273,7 +286,7 @@ class TestUnexpectedErrorHandling:
         from backend.tasks import process_ingest_file
 
         mock_fs.get.side_effect = [
-            RuntimeError("boom"),           # pipeline error
+            RuntimeError("boom"),  # pipeline error
             RuntimeError("should not matter"),
         ]
         mock_state.update_file.side_effect = AppStateError("handler fail")
@@ -287,6 +300,7 @@ class TestUnexpectedErrorHandling:
 # ===================================================================
 # IngestionError from error handler also fails
 # ===================================================================
+
 
 class TestDoubleFailure:
     @patch("backend.tasks.APP_STATE")

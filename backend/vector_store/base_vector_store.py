@@ -1,10 +1,12 @@
 from abc import abstractmethod, ABC
 import hashlib
 
+
 class VectorStoreError(Exception):
     """
     Custom exception for VectorStore errors.
     """
+
     pass
 
 

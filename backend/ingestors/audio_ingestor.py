@@ -7,7 +7,9 @@ from functools import cached_property
 
 load_dotenv()
 
-LLM_API_KEY = os.getenv("LLM_API_KEY", "").strip() or os.getenv("GROQ_KEY", "").strip() or None
+LLM_API_KEY = (
+    os.getenv("LLM_API_KEY", "").strip() or os.getenv("GROQ_KEY", "").strip() or None
+)
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.groq.com/openai/v1")
 LLM_AUDIO_MODEL = os.getenv("LLM_AUDIO_MODEL", "whisper-large-v3-turbo")
 
@@ -75,7 +77,9 @@ class AudioIngestor(BaseIngestor):
     def extract_text_api(self, file: IngestableFile):
         try:
             if not self.client:
-                raise IngestionError("LLM_API_KEY or GROQ_KEY environment variable not set")
+                raise IngestionError(
+                    "LLM_API_KEY or GROQ_KEY environment variable not set"
+                )
             file.file_obj.seek(0)
             transcription = self.client.audio.transcriptions.create(
                 file=(file.file_name, file.file_obj),

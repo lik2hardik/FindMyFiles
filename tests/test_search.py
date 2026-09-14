@@ -9,7 +9,12 @@ from datetime import datetime, timezone
 
 import pytest
 
-from backend.search import SearchRequest, build_where, normalize_distance, shape_search_response
+from backend.search import (
+    SearchRequest,
+    build_where,
+    normalize_distance,
+    shape_search_response,
+)
 
 
 class TestBuildWhere:
@@ -140,7 +145,9 @@ class TestShapeSearchResponse:
         raw = self._make_raw(
             ids=["abc123"],
             documents=["the quick brown fox"],
-            metadatas=[{"file_name": "a.txt", "extension": "txt", "created_at_ts": 1000.0}],
+            metadatas=[
+                {"file_name": "a.txt", "extension": "txt", "created_at_ts": 1000.0}
+            ],
             distances=[0.5],
         )
         result = shape_search_response(raw, req)

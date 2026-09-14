@@ -124,7 +124,9 @@ def make_file(tmp_path, name, data=b"audio"):
 
 
 class TestExtractTextLocal:
-    def test_local_transcription_joins_segments_and_metadata(self, tmp_path, isolated_registry, monkeypatch):
+    def test_local_transcription_joins_segments_and_metadata(
+        self, tmp_path, isolated_registry, monkeypatch
+    ):
         """Local mode joins whisper segments with spaces and returns valid
         metadata."""
         monkeypatch.setattr(m, "WhisperModel", FakeWhisperModel)
@@ -142,7 +144,9 @@ class TestExtractTextLocal:
         assert metadata.type == "audio"
         assert isinstance(metadata.created_at_ts, float)
 
-    def test_local_transcribe_failure_wraps_as_ingestion_error(self, tmp_path, isolated_registry, monkeypatch):
+    def test_local_transcribe_failure_wraps_as_ingestion_error(
+        self, tmp_path, isolated_registry, monkeypatch
+    ):
         """A whisper transcribe failure surfaces as a chained IngestionError,
         not the raw RuntimeError."""
         monkeypatch.setattr(m, "WhisperModel", FailingTranscribeModel)
@@ -154,7 +158,9 @@ class TestExtractTextLocal:
 
         assert isinstance(exc.value.__cause__, RuntimeError)
 
-    def test_local_whisper_initialization_failure_wraps(self, isolated_registry, monkeypatch):
+    def test_local_whisper_initialization_failure_wraps(
+        self, isolated_registry, monkeypatch
+    ):
         """A WhisperModel construction failure surfaces as a chained
         IngestionError mentioning model initialization."""
         monkeypatch.setattr(m, "WhisperModel", FailingWhisperModel)
@@ -167,7 +173,9 @@ class TestExtractTextLocal:
 
         assert isinstance(exc.value.__cause__, RuntimeError)
 
-    def test_local_whisper_ingestion_error_not_double_wrapped(self, tmp_path, isolated_registry, monkeypatch):
+    def test_local_whisper_ingestion_error_not_double_wrapped(
+        self, tmp_path, isolated_registry, monkeypatch
+    ):
         """An IngestionError from the whisper layer propagates unchanged, not
         re-wrapped with a generic 'Failed to extract text' prefix."""
         monkeypatch.setattr(m, "WhisperModel", RaisingIngestionWhisper)
@@ -181,7 +189,9 @@ class TestExtractTextLocal:
 
 
 class TestExtractTextApi:
-    def test_api_transcription_returns_text_and_metadata(self, tmp_path, isolated_registry, monkeypatch):
+    def test_api_transcription_returns_text_and_metadata(
+        self, tmp_path, isolated_registry, monkeypatch
+    ):
         """API mode returns the transcribed text, forwards the right model/
         format/file arguments, and produces valid metadata."""
         monkeypatch.setattr(m, "LLM_API_KEY", "gsk-test")
@@ -200,7 +210,9 @@ class TestExtractTextApi:
         assert metadata.extension == "mp3"
         assert metadata.type == "audio"
 
-    def test_api_failure_wraps_as_ingestion_error(self, tmp_path, isolated_registry, monkeypatch):
+    def test_api_failure_wraps_as_ingestion_error(
+        self, tmp_path, isolated_registry, monkeypatch
+    ):
         """An API transcription failure surfaces as a chained IngestionError."""
         monkeypatch.setattr(m, "LLM_API_KEY", "gsk-test")
         monkeypatch.setattr(m, "OpenAI", lambda *a, **k: FakeAudioClient())
@@ -214,7 +226,9 @@ class TestExtractTextApi:
 
         assert isinstance(exc.value.__cause__, RuntimeError)
 
-    def test_missing_api_key_raises_ingestion_error_when_using_api(self, tmp_path, isolated_registry, monkeypatch):
+    def test_missing_api_key_raises_ingestion_error_when_using_api(
+        self, tmp_path, isolated_registry, monkeypatch
+    ):
         """Constructing with use_api=True and no LLM_API_KEY is allowed,
         but extract_text raises IngestionError when trying to use the API."""
         monkeypatch.setattr(m, "LLM_API_KEY", None)
@@ -223,10 +237,15 @@ class TestExtractTextApi:
         assert ingestor.client is None
 
         with make_file(tmp_path, "clip.mp3") as f:
-            with pytest.raises(IngestionError, match="LLM_API_KEY or GROQ_KEY environment variable not set"):
+            with pytest.raises(
+                IngestionError,
+                match="LLM_API_KEY or GROQ_KEY environment variable not set",
+            ):
                 ingestor.extract_text(IngestableFile(f, "clip.mp3"))
 
-    def test_local_mode_without_api_key_works(self, tmp_path, isolated_registry, monkeypatch):
+    def test_local_mode_without_api_key_works(
+        self, tmp_path, isolated_registry, monkeypatch
+    ):
         """use_api=False constructs cleanly without an API key and transcribes
         locally."""
         monkeypatch.setattr(m, "LLM_API_KEY", None)
@@ -241,7 +260,9 @@ class TestExtractTextApi:
 
 
 class TestExtensionValidation:
-    def test_extension_mismatch_raises_ingestion_error(self, tmp_path, isolated_registry):
+    def test_extension_mismatch_raises_ingestion_error(
+        self, tmp_path, isolated_registry
+    ):
         """An unsupported extension raises IngestionError mentioning the
         offending extension, before any transcription happens."""
         with make_file(tmp_path, "clip.wav") as f:
@@ -251,7 +272,9 @@ class TestExtensionValidation:
 
         assert "wav" in str(exc.value)
 
-    def test_accepts_any_accepted_format(self, tmp_path, isolated_registry, monkeypatch):
+    def test_accepts_any_accepted_format(
+        self, tmp_path, isolated_registry, monkeypatch
+    ):
         """Both configured formats transcribe successfully."""
         monkeypatch.setattr(m, "WhisperModel", FakeWhisperModel)
 
@@ -267,7 +290,9 @@ class TestInit:
     def test_constructor_wraps_unexpected_errors(self, isolated_registry):
         """An unexpected failure inside super().__init__ (here: an unhashable
         format) is wrapped in a chained IngestionError."""
-        with pytest.raises(IngestionError, match="Failed to update ingestor map") as exc:
+        with pytest.raises(
+            IngestionError, match="Failed to update ingestor map"
+        ) as exc:
             AudioIngestor(accepted_formats=[["unhashable"]])
 
         assert isinstance(exc.value.__cause__, TypeError)

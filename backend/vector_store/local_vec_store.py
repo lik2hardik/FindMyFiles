@@ -3,8 +3,10 @@ from ..ingestors.base_ingestor import Metadata
 import chromadb
 from functools import cached_property
 
+
 class ChromaDBError(VectorStoreError):
     pass
+
 
 class ChromaDBVectorStore(BaseVectorStore):
     @cached_property
@@ -43,13 +45,17 @@ class ChromaDBVectorStore(BaseVectorStore):
         self._client_factory = client_factory
         self._embedding_function = embedding_function
 
-    def add(self, chunks: list[str] , metadatas: list[Metadata]):
+    def add(self, chunks: list[str], metadatas: list[Metadata]):
         try:
             if not chunks or not metadatas:
-                raise VectorStoreError(f"Chunks and metadatas must not be empty len(chunks)={len(chunks)} len(metadatas)={len(metadatas)}")
+                raise VectorStoreError(
+                    f"Chunks and metadatas must not be empty len(chunks)={len(chunks)} len(metadatas)={len(metadatas)}"
+                )
 
             if len(chunks) != len(metadatas):
-                raise VectorStoreError(f"Chunks and metadatas must have the same length len(chunks)={len(chunks)} len(metadatas)={len(metadatas)}")
+                raise VectorStoreError(
+                    f"Chunks and metadatas must have the same length len(chunks)={len(chunks)} len(metadatas)={len(metadatas)}"
+                )
 
             if not all(isinstance(m, Metadata) for m in metadatas):
                 raise VectorStoreError("All metadatas must be instances of Metadata")

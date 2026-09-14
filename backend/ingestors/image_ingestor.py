@@ -11,10 +11,13 @@ from backend.ingestors.ocr_utils import get_ocr_engine
 
 load_dotenv()
 
-LLM_API_KEY = os.getenv("LLM_API_KEY", "").strip() or os.getenv("GROQ_KEY", "").strip() or None
+LLM_API_KEY = (
+    os.getenv("LLM_API_KEY", "").strip() or os.getenv("GROQ_KEY", "").strip() or None
+)
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.groq.com/openai/v1")
 LLM_VISION_MODEL = os.getenv("LLM_VISION_MODEL", "qwen/qwen3.6-27b")
 REQUEST_LIMIT = 5
+
 
 def encode_image(image_file):
     return base64.b64encode(image_file.read()).decode("utf-8")
@@ -38,7 +41,9 @@ class ImageOCRIngestor(BaseIngestor):
         except IngestionError as e:
             raise e
         except Exception as e:
-            raise IngestionError(f"Failed to initialize ImageOCRIngestor: {str(e)}") from e
+            raise IngestionError(
+                f"Failed to initialize ImageOCRIngestor: {str(e)}"
+            ) from e
 
     def extract_text(self, file):
         try:
@@ -75,10 +80,12 @@ class ImageOCRIngestor(BaseIngestor):
         if not self.client:
             raise IngestionError("API key not provided.")
         if timeout is not None and timeout <= 0:
-            raise IngestionError("Request limit reached. Failed to fetch image captions via API.")
+            raise IngestionError(
+                "Request limit reached. Failed to fetch image captions via API."
+            )
 
         if timeout is None:
-            timeout = REQUEST_LIMIT # set timeout value for each request
+            timeout = REQUEST_LIMIT  # set timeout value for each request
 
         timeout -= 1
 
@@ -134,7 +141,9 @@ class ImageOCRIngestor(BaseIngestor):
 
             print("rate limit reached. Waiting 5 seconds before retry...")
             time.sleep(5)
-            return self.api_caption(file, timeout = timeout)
+            return self.api_caption(file, timeout=timeout)
 
         except Exception as e:
-            raise IngestionError(f"Failed to fetch image captions via API: {str(e)}") from e
+            raise IngestionError(
+                f"Failed to fetch image captions via API: {str(e)}"
+            ) from e

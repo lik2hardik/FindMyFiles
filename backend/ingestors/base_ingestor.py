@@ -12,19 +12,25 @@ class Metadata(BaseModel):
         default_factory=lambda: datetime.now(timezone.utc).timestamp()
     )
 
+
 class IngestionError(Exception):
     "Generic Ingestion Error when extracting text from a file failed."
+
     pass
 
 
 class BaseIngestor(ABC):
     "Class to Ingest file into chunks and metadata."
 
-
     all_formats = set()  # to store all accepted formats
     ingestor_map = dict()  # stores which format corrosponds to which ingestor
 
-    def __init__(self, type: str | None = None, accepted_formats: list[str] | None = None, name: str = "default"):
+    def __init__(
+        self,
+        type: str | None = None,
+        accepted_formats: list[str] | None = None,
+        name: str = "default",
+    ):
         self.name = name
         self.type = type
         self.accepted_formats = accepted_formats or []

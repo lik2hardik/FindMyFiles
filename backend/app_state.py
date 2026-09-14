@@ -3,8 +3,10 @@ from sqlmodel import SQLModel, Field, Session, select
 from sqlalchemy import func, create_engine
 import os
 
+
 class AppStateError(Exception):
     """Custom exception for AppState errors."""
+
     pass
 
 
@@ -53,7 +55,6 @@ class AppState:
             SQLModel.metadata.create_all(self.engine)
         except Exception as e:
             raise AppStateError(f"Failed to initialize AppState Database: {e}") from e
-
 
     def insert_file(
         self,
@@ -109,7 +110,9 @@ class AppState:
             raise AppStateError(f"Failed to get status by id: {e}") from e
 
         if not file_row:
-            raise FileNotFoundError(f"No file entry found in database for ID: {file_id}")
+            raise FileNotFoundError(
+                f"No file entry found in database for ID: {file_id}"
+            )
 
         return row_to_dict(file_row)
 

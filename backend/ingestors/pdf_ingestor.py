@@ -32,7 +32,9 @@ class PdfIngestor(BaseIngestor):
         except IngestionError as e:
             raise e
         except Exception as e:
-            raise IngestionError(f"PDF {file.file_name} could not be parsed: {e}") from e
+            raise IngestionError(
+                f"PDF {file.file_name} could not be parsed: {e}"
+            ) from e
 
         text = "\n\n".join(page_texts).strip()
         if not text:

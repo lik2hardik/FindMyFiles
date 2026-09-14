@@ -27,6 +27,7 @@ client = TestClient(app)
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _fake_file(name="test.txt", content=b"hello"):
     """Return a files dict for multipart uploads."""
     return {"file": (name, io.BytesIO(content), "application/octet-stream")}
@@ -74,6 +75,7 @@ def _patch_globals(monkeypatch):
 # GET /  (statistics)
 # ===================================================================
 
+
 class TestStatistics:
     @patch("backend.app.APP_STATE")
     def test_returns_status_list(self, mock_state):
@@ -101,6 +103,7 @@ class TestStatistics:
 # ===================================================================
 # POST /upload/
 # ===================================================================
+
 
 class TestUpload:
     @patch("backend.app.process_ingest_file")
@@ -146,7 +149,9 @@ class TestUpload:
     @patch("backend.app.process_ingest_file")
     @patch("backend.app.APP_STATE")
     @patch("backend.app.FILE_STORE")
-    def test_store_failure_returns_500(self, mock_fs, mock_state, mock_task, monkeypatch):
+    def test_store_failure_returns_500(
+        self, mock_fs, mock_state, mock_task, monkeypatch
+    ):
         """POST /upload/ returns 500 when FILE_STORE.store() raises."""
         monkeypatch.setattr(BaseIngestor, "all_formats", {"txt"})
         mock_fs.store.side_effect = FileStoreError("disk full")
@@ -164,7 +169,9 @@ class TestUpload:
     @patch("backend.app.process_ingest_file")
     @patch("backend.app.APP_STATE")
     @patch("backend.app.FILE_STORE")
-    def test_insert_failure_returns_500(self, mock_fs, mock_state, mock_task, monkeypatch):
+    def test_insert_failure_returns_500(
+        self, mock_fs, mock_state, mock_task, monkeypatch
+    ):
         """POST /upload/ returns 500 when APP_STATE.insert_file() raises."""
         monkeypatch.setattr(BaseIngestor, "all_formats", {"txt"})
         mock_fs.store.return_value = 42
@@ -182,7 +189,9 @@ class TestUpload:
     @patch("backend.app.process_ingest_file")
     @patch("backend.app.APP_STATE")
     @patch("backend.app.FILE_STORE")
-    def test_celery_dispatch_failure_returns_500(self, mock_fs, mock_state, mock_task, monkeypatch):
+    def test_celery_dispatch_failure_returns_500(
+        self, mock_fs, mock_state, mock_task, monkeypatch
+    ):
         """POST /upload/ returns 500 when Celery .delay() raises."""
         monkeypatch.setattr(BaseIngestor, "all_formats", {"txt"})
         mock_fs.store.return_value = 42
@@ -202,6 +211,7 @@ class TestUpload:
 # POST /search/
 # ===================================================================
 
+
 class TestSearch:
     @patch("backend.app.VECTOR_STORE")
     def test_search_returns_results(self, mock_vs):
@@ -209,7 +219,9 @@ class TestSearch:
         mock_vs.get.return_value = {
             "ids": [["chunk-1"]],
             "documents": [["some text"]],
-            "metadatas": [[{"file_name": "a.txt", "extension": "txt", "created_at_ts": 1000.0}]],
+            "metadatas": [
+                [{"file_name": "a.txt", "extension": "txt", "created_at_ts": 1000.0}]
+            ],
             "distances": [[0.5]],
         }
 
@@ -298,7 +310,11 @@ class TestSearch:
         assert resp.status_code == 200
         call_kwargs = mock_vs.get.call_args
         assert call_kwargs[1]["k"] == 3 or call_kwargs[0][1] == 3
-        constraints = call_kwargs[1].get("constraints") or call_kwargs[0][2] if len(call_kwargs[0]) > 2 else call_kwargs[1].get("constraints")
+        constraints = (
+            call_kwargs[1].get("constraints") or call_kwargs[0][2]
+            if len(call_kwargs[0]) > 2
+            else call_kwargs[1].get("constraints")
+        )
         assert constraints is not None
 
     def test_empty_query_rejected(self):
@@ -311,6 +327,7 @@ class TestSearch:
 # ===================================================================
 # GET /files/  (list files)
 # ===================================================================
+
 
 class TestListFiles:
     @patch("backend.app.FILE_STORE")
@@ -384,6 +401,7 @@ class TestListFiles:
 # GET /file/{file_id}  (download file contents)
 # ===================================================================
 
+
 class TestGetFileContents:
     @patch("backend.app.FILE_STORE")
     def test_returns_file_content(self, mock_fs):
@@ -435,6 +453,7 @@ class TestGetFileContents:
 # GET /files/{file_id}  (single file status)
 # ===================================================================
 
+
 class TestFileStatus:
     @patch("backend.app.APP_STATE")
     def test_returns_file_status(self, mock_state):
@@ -462,6 +481,7 @@ class TestFileStatus:
 # ===================================================================
 # GET /formats
 # ===================================================================
+
 
 class TestFormats:
     def test_returns_all_registered_formats(self, monkeypatch):

@@ -72,7 +72,9 @@ class TestStore:
         with open(disk_path, "rb") as f:
             assert f.read() == data
 
-    def test_store_same_content_twice_creates_two_ids_same_file(self, filestore, tmp_path):
+    def test_store_same_content_twice_creates_two_ids_same_file(
+        self, filestore, tmp_path
+    ):
         """No dedup: identical content gets distinct ids but a shared md5-named
         disk file; both ids still retrieve the content."""
         data = b"duplicated"
@@ -112,24 +114,32 @@ class TestStore:
         assert row.size == 0
         assert row.md5_name == "d41d8cd98f00b204e9800998ecf8427e"
 
-    def test_store_md5_hash_failure_raises_filestore_error(self, filestore, tmp_path, monkeypatch):
+    def test_store_md5_hash_failure_raises_filestore_error(
+        self, filestore, tmp_path, monkeypatch
+    ):
         """A source-stream read failure during hashing raises FileStoreError
         with 'Failed to compute MD5 hash' and chains the original error."""
+
         def failing_hasher(file_obj):
             raise OSError("read failure")
 
         monkeypatch.setattr(m, "md5_hasher", failing_hasher)
 
         with open_ingestable(tmp_path, "a.txt", b"x") as f:
-            with pytest.raises(FileStoreError, match="Failed to compute MD5 hash") as exc:
+            with pytest.raises(
+                FileStoreError, match="Failed to compute MD5 hash"
+            ) as exc:
                 filestore.store(IngestableFile(f))
 
         assert isinstance(exc.value.__cause__, OSError)
 
-    def test_store_failure_before_file_path_assignment(self, filestore, tmp_path, monkeypatch):
+    def test_store_failure_before_file_path_assignment(
+        self, filestore, tmp_path, monkeypatch
+    ):
         """Regression: a failure before file_path is assigned (e.g. os.makedirs
         raising) must not NameError in the except handler; it raises a chained
         FileStoreError, leaves no partial file, and rolls back the DB row."""
+
         def failing_makedirs(path, exist_ok=False):
             raise PermissionError("denied")
 
@@ -144,9 +154,12 @@ class TestStore:
         with Session(filestore.engine) as session:
             assert session.exec(select(FileDB)).all() == []
 
-    def test_store_disk_write_failure_cleans_up_partial_file(self, filestore, tmp_path, monkeypatch):
+    def test_store_disk_write_failure_cleans_up_partial_file(
+        self, filestore, tmp_path, monkeypatch
+    ):
         """A disk write failure removes the partially-written file and rolls
         back the DB row, so no partial state survives."""
+
         def failing_copyfileobj(src, dst):
             raise OSError("disk full")
 
@@ -161,9 +174,12 @@ class TestStore:
         with Session(filestore.engine) as session:
             assert session.exec(select(FileDB)).all() == []
 
-    def test_store_commit_failure_removes_disk_file(self, filestore, tmp_path, monkeypatch):
+    def test_store_commit_failure_removes_disk_file(
+        self, filestore, tmp_path, monkeypatch
+    ):
         """A DB commit failure removes the already-written disk file and leaves
         no DB row, keeping DB and disk consistent."""
+
         def failing_commit(self):
             raise RuntimeError("commit failed")
 
@@ -178,10 +194,13 @@ class TestStore:
         with Session(filestore.engine) as session:
             assert session.exec(select(FileDB)).all() == []
 
-    def test_store_cleanup_remove_failure_reports_cleanup_error(self, filestore, tmp_path, monkeypatch):
+    def test_store_cleanup_remove_failure_reports_cleanup_error(
+        self, filestore, tmp_path, monkeypatch
+    ):
         """When cleanup os.remove itself fails, the error is reported as a
         FileStoreError ('Failed to remove file from disk') chained to the
         cleanup failure, not the original write failure."""
+
         def failing_copyfileobj(src, dst):
             raise OSError("disk full")
 
@@ -343,9 +362,12 @@ class TestContracts:
         with pytest.raises(FileStoreError):
             IngestableFile(file_obj=object())
 
-    def test_all_store_errors_are_filestore_errors(self, filestore, tmp_path, monkeypatch):
+    def test_all_store_errors_are_filestore_errors(
+        self, filestore, tmp_path, monkeypatch
+    ):
         """Contract check: even a failing store() surfaces as FileStoreError,
         never a raw builtin exception."""
+
         def failing_makedirs(path, exist_ok=False):
             raise PermissionError("x")
 

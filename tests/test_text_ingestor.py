@@ -126,7 +126,9 @@ class TestExtractText:
 
 
 class TestExtensionValidation:
-    def test_extension_mismatch_raises_ingestion_error(self, tmp_path, isolated_registry):
+    def test_extension_mismatch_raises_ingestion_error(
+        self, tmp_path, isolated_registry
+    ):
         """An unsupported extension raises IngestionError mentioning the
         offending extension, before any file reading happens."""
         with make_file(tmp_path, "doc.csv", "a,b", binary=False) as f:
@@ -144,7 +146,9 @@ class TestExtensionValidation:
             with pytest.raises(IngestionError):
                 ingestor.extract_text(IngestableFile(f, "doc.txt"))
 
-    def test_ingestor_with_no_formats_rejects_everything(self, tmp_path, isolated_registry):
+    def test_ingestor_with_no_formats_rejects_everything(
+        self, tmp_path, isolated_registry
+    ):
         """A TextIngestor constructed without accepted formats accepts nothing
         but raises a clean IngestionError, not a raw error."""
         with make_file(tmp_path, "doc.txt", "x", binary=False) as f:
@@ -206,7 +210,9 @@ class TestErrorHandling:
     def test_constructor_wraps_unexpected_errors(self, isolated_registry):
         """An unexpected failure inside super().__init__ (here: an unhashable
         format) is wrapped in a chained IngestionError."""
-        with pytest.raises(IngestionError, match="Failed to update ingestor map") as exc:
+        with pytest.raises(
+            IngestionError, match="Failed to update ingestor map"
+        ) as exc:
             TextIngestor(accepted_formats=[["unhashable"]])
 
         assert isinstance(exc.value.__cause__, TypeError)

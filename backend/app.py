@@ -66,9 +66,11 @@ async def upload_file(file: Annotated[UploadFile, File()]):
         }
     raise HTTPException(
         status_code=422,
-        detail={"message": f"Unsupported file extension: {ingestable_file.extension}",
-                "acceptable_formats": list(BaseIngestor.all_formats)},
-        )
+        detail={
+            "message": f"Unsupported file extension: {ingestable_file.extension}",
+            "acceptable_formats": list(BaseIngestor.all_formats),
+        },
+    )
 
 
 @app.post("/search/")
