@@ -1,0 +1,61 @@
+# =============================================================================
+# Docker Ignore - Keep build context minimal for faster builds
+# =============================================================================
+
+# Version control
+.git/
+.gitignore
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing and linting caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Environment files (secrets should never be in image)
+.env
+.env.*
+!.env.example
+
+# Data directories (will be mounted as volumes)
+backend/data/
+
+# Documentation (not needed in runtime image)
+*.md
+LICENSE
+
+# Docker files (avoid recursive builds)
+Dockerfile*
+docker-compose*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+temp-*.rdb
+dump.rdb
+*.log

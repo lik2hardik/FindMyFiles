@@ -1,0 +1,146 @@
+# =============================================================================
+# FindMyFiles Docker Compose - Complete Application Stack
+# =============================================================================
+# Services:
+#   - backend:  FastAPI REST API (port 8000)
+#   - worker:   Celery background worker for file processing
+#   - redis:    Message broker for Celery task queue
+#   - frontend: Gradio web UI (port 7860)
+#
+# Usage:
+#   Development:  docker compose up
+#   Production:   docker compose -f docker-compose.yml up -d
+#   Build only:   docker compose build
+#   Stop:         docker compose down
+#   Stop + cleanup: docker compose down -v  (removes volumes too)
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Redis - Message broker for Celery task queue
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: findmyfiles-redis
+    restart: unless-stopped
+    volumes:
+      # Persist Redis data across container restarts
+      - redis-data:/data
+    healthcheck:
+      # Verify Redis is responding to PING commands
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - findmyfiles-network
+
+  # ---------------------------------------------------------------------------
+  # Backend - FastAPI REST API server
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: findmyfiles-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # LLM API Configuration (OpenAI-compatible)
+      - LLM_API_KEY=${LLM_API_KEY:-}
+      - LLM_BASE_URL=${LLM_BASE_URL:-https://api.groq.com/openai/v1}
+      - LLM_VISION_MODEL=${LLM_VISION_MODEL:-qwen/qwen3.6-27b}
+      - LLM_AUDIO_MODEL=${LLM_AUDIO_MODEL:-whisper-large-v3-turbo}
+      # Redis connection for Celery
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      # Persist application data (databases, vector store, files)
+      - app-data:/app/backend/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # Check if FastAPI is responding
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - findmyfiles-network
+
+  # ---------------------------------------------------------------------------
+  # Worker - Celery background worker for file processing
+  # ---------------------------------------------------------------------------
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: findmyfiles-worker
+    restart: unless-stopped
+    # Override CMD to run Celery worker instead of API server
+    command: >
+      celery -A backend.celery_app worker
+      --loglevel=info
+      --concurrency=4
+      --max-tasks-per-child=100
+    environment:
+      # LLM API Configuration (OpenAI-compatible)
+      - LLM_API_KEY=${LLM_API_KEY:-}
+      - LLM_BASE_URL=${LLM_BASE_URL:-https://api.groq.com/openai/v1}
+      - LLM_VISION_MODEL=${LLM_VISION_MODEL:-qwen/qwen3.6-27b}
+      - LLM_AUDIO_MODEL=${LLM_AUDIO_MODEL:-whisper-large-v3-turbo}
+      # Redis connection for Celery
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      # Share same data volume as backend (read/write access)
+      - app-data:/app/backend/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - findmyfiles-network
+
+  # ---------------------------------------------------------------------------
+  # Frontend - Gradio web UI
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: findmyfiles-frontend
+    restart: unless-stopped
+    ports:
+      - "7860:7860"
+    # Override CMD to run Gradio frontend
+    command: >
+      python -m frontend.app
+    environment:
+      # Backend URL for API calls (uses Docker network)
+      - FINDMYFILES_BACKEND_URL=http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - findmyfiles-network
+
+# =============================================================================
+# Volumes - Persistent storage for application data
+# =============================================================================
+volumes:
+  # Redis persistence
+  redis-data:
+    driver: local
+
+  # Application data (shared between backend and worker)
+  # Contains: SQLite databases, file store, vector embeddings
+  app-data:
+    driver: local
+
+# =============================================================================
+# Networks - Isolated network for service communication
+# =============================================================================
+networks:
+  findmyfiles-network:
+    driver: bridge

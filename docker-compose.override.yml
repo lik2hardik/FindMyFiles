@@ -1,0 +1,52 @@
+# =============================================================================
+# FindMyFiles Docker Compose - Development Overrides
+# =============================================================================
+# This file is automatically loaded by docker compose and overrides the base
+# configuration for local development.
+#
+# Usage: docker compose up  (automatically uses this file)
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Backend - Enable hot-reload for development
+  # ---------------------------------------------------------------------------
+  backend:
+    # Override command to enable hot-reload
+    command: >
+      uvicorn backend.app:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+      --reload-dir /app/backend
+    # Mount source code for live editing (requires bind mount)
+    volumes:
+      - ./backend:/app/backend
+      - app-data:/app/backend/data
+    environment:
+      - LOG_LEVEL=debug
+
+  # ---------------------------------------------------------------------------
+  # Worker - Enable hot-reload for development
+  # ---------------------------------------------------------------------------
+  worker:
+    command: >
+      celery -A backend.celery_app worker
+      --loglevel=debug
+      --concurrency=2
+    volumes:
+      - ./backend:/app/backend
+      - app-data:/app/backend/data
+    environment:
+      - LOG_LEVEL=debug
+
+  # ---------------------------------------------------------------------------
+  # Frontend - Enable hot-reload for development
+  # ---------------------------------------------------------------------------
+  frontend:
+    command: >
+      python -m frontend.app
+    volumes:
+      - ./frontend:/app/frontend
+    environment:
+      - LOG_LEVEL=debug
