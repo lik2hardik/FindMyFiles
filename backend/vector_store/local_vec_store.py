@@ -12,7 +12,7 @@ class ChromaDBVectorStore(BaseVectorStore):
         try:
             if self._client_factory:
                 return self._client_factory()
-            return chromadb.HttpClient(host=self.host, port=self.port)
+            return chromadb.PersistentClient(path=self.path)
         except ChromaDBError as e:
             raise e
         except Exception as e:
@@ -36,14 +36,10 @@ class ChromaDBVectorStore(BaseVectorStore):
     def __init__(
         self,
         path="backend/data/vecstore/",
-        host="localhost",
-        port=8001,
         client_factory=None,
         embedding_function=None,
     ):
         super().__init__(path)
-        self.host = host
-        self.port = port
         self._client_factory = client_factory
         self._embedding_function = embedding_function
 

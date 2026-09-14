@@ -398,21 +398,21 @@ class TestClientSeam:
 
         assert fake.created_with["embedding_function"] is embedding
 
-    def test_default_client_factory_uses_http_client(self, monkeypatch):
+    def test_default_client_factory_uses_persistent_client(self, monkeypatch):
         """Without an injected factory, client creation falls back to
-        chromadb.HttpClient with the configured host and port."""
+        chromadb.PersistentClient with the configured path."""
         captured = {}
 
-        class FakeHttpClient:
+        class FakePersistentClient:
             def __init__(self, **kwargs):
                 captured.update(kwargs)
 
-        monkeypatch.setattr(chromadb, "HttpClient", FakeHttpClient)
+        monkeypatch.setattr(chromadb, "PersistentClient", FakePersistentClient)
 
-        store = ChromaDBVectorStore(path="unused", host="myhost", port=1234)
+        store = ChromaDBVectorStore(path="/test/path")
         _ = store.client
 
-        assert captured == {"host": "myhost", "port": 1234}
+        assert captured == {"path": "/test/path"}
 
 
 class TestContracts:
